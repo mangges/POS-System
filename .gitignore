@@ -28,3 +28,9 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Modern Laravel Caches
+/bootstrap/cache/
+/storage/framework/
+/storage/logs/
+/storage/app/
