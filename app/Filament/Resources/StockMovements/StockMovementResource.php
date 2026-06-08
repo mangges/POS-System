@@ -18,7 +18,10 @@ class StockMovementResource extends Resource
 {
     protected static ?string $model = StockMovement::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowDownOnSquareStack;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Inventori';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
