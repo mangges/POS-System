@@ -20,7 +20,7 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Master Data';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
