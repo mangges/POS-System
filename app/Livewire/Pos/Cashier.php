@@ -5,6 +5,10 @@ namespace App\Livewire\Pos;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Services\OrderService;
 
 #[Layout('components.layouts.app')]
 class Cashier extends Component
@@ -14,10 +18,11 @@ class Cashier extends Component
     public $selectedCategory = null;
     
     public $cart = [];
-    public $taxRate = 0.11; // 11% Tax
+    public $taxRate = 0.11;
     public $discount = 0;
     
     public $search = '';
+    public $customerName = '';
 
     public function mount()
     {
@@ -69,7 +74,6 @@ class Cashier extends Component
             return;
         }
 
-        // If not recipe based, check stock
         if (!$product->has_recipe && $product->stock !== null && $product->stock <= 0) {
             return;
         }
@@ -111,7 +115,7 @@ class Cashier extends Component
     public function removeFromCart($index)
     {
         unset($this->cart[$index]);
-        $this->cart = array_values($this->cart); // re-index
+        $this->cart = array_values($this->cart);
     }
     
     public function getSubtotalProperty()
@@ -132,10 +136,10 @@ class Cashier extends Component
     public function checkout()
     {
         if (empty($this->cart)) return;
-
-        // Implement checkout logic here (insert to orders, order_items, decrement stock)
         
-        $this->cart = []; // clear cart after successful checkout
+        OrderService::placeOrder($this->cart, ['name' => $this->customerName]);
+        $this->cart = [];
+        $this->customerName = '';
         session()->flash('message', 'Pesanan berhasil diproses!');
     }
 
