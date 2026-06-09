@@ -33,7 +33,11 @@ class ProductForm
                 Toggle::make('is_out_of_stock')
                     ->required(),
                 Select::make('destination')
-                    ->options(['kitchen' => 'Kitchen', 'bar' => 'Bar', 'cashier' => 'Cashier'])
+                    ->options([
+                        'kitchen' => 'Kitchen', 
+                        'bar' => 'Bar', 
+                        'cashier' => 'Cashier'
+                        ])
                     ->default('kitchen')
                     ->required(),
                 FileUpload::make('image')
