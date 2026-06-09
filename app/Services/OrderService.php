@@ -20,8 +20,7 @@ class OrderService
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'customer_name' => $customerInfo['name'] ?? 'Guest',
-                'customer_phone' => $customerInfo['phone'] ?? null,
-                'tax_amount' => $pricing['tax_amount'],
+                'tax' => $pricing['tax_amount'],
                 'discount' => $pricing['discount'],
                 'total_amount' => $pricing['total'],
                 'status' => 'completed',

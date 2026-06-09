@@ -16,6 +16,7 @@ class Order extends Model
         'order_number',
         'table_id',
         'customer_id',
+        'customer_name',
         'user_id',
         'total_amount',
         'tax',
