@@ -25,8 +25,4 @@ Route::get('/cashier', App\Livewire\Pos\Cashier::class)->middleware('auth');
 //   2. QR-code route at /order/{table_token} — validated by OrderController
 //      Uses qr_token (not table PK) in the URL for security.
 // ---------------------------------------------------------------------------
-Route::get('/order', App\Livewire\LandingPage\LandingPage::class)->name('order');
-
-Route::get('/order/{table_token}', [OrderController::class, 'menu'])
-    ->name('order.menu')
-    ->where('table_token', '[A-Za-z0-9]+');
+Route::get('/order/{table_token}', App\Livewire\LandingPage\LandingPage::class)->name('order');

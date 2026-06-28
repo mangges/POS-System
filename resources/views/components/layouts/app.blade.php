@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS System Kasir</title>
     @vite(['resources/css/app.css', 'resources/css/cashier.css', 'resources/js/app.js'])
+    @stack('scripts')
     @livewireStyles
     <!-- Menggunakan font modern (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
