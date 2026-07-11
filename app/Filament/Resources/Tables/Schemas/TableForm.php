@@ -12,12 +12,19 @@ class TableForm
     {
         return $schema
             ->components([
-                TextInput::make('number')
-                    ->required(),
-                TextInput::make('barcode')
-                    ->required(),
+                TextInput::make('name')
+                    ->label('Nama Meja')
+                    ->placeholder('Contoh: Meja 1, VIP 3')
+                    ->required()
+                    ->maxLength(100),
+
                 Select::make('status')
-                    ->options(['available' => 'Available', 'occupied' => 'Occupied'])
+                    ->label('Status')
+                    ->options([
+                        'available' => 'Available',
+                        'occupied'  => 'Occupied',
+                        'reserved'  => 'Reserved',
+                    ])
                     ->default('available')
                     ->required(),
             ]);

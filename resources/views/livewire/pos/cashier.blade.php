@@ -98,9 +98,9 @@
                                 <span class="item-name">{{ $item['name'] }}</span>
                                 <div class="cart-item-actions">
                                     <div class="qty-controls">
-                                        <button class="qty-btn" wire:click="updateQty({{ $index }}, 'decrease')">-</button>
+                                        <button class="qty-btn" wire:click="decrementQuantity({{ $index }})">-</button>
                                         <span class="qty-display">{{ $item['qty'] }}</span>
-                                        <button class="qty-btn" wire:click="updateQty({{ $index }}, 'increase')">+</button>
+                                        <button class="qty-btn" wire:click="incrementQuantity({{ $index }})">+</button>
                                     </div>
                                     <button class="remove-btn" wire:click="removeFromCart({{ $index }})" title="Hapus">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
