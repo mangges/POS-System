@@ -14,7 +14,7 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'payment_method',
-        'amount_paid',
+        'amount',
         'change',
         'status',
         'transaction_id',
@@ -22,7 +22,7 @@ class Payment extends Model
 
     protected $casts = [
         'status' => PaymentStatus::class,
-        'amount_paid' => 'decimal:2',
+        'amount' => 'decimal:2',
         'change' => 'decimal:2',
     ];
 
