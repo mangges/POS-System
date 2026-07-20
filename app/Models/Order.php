@@ -22,7 +22,7 @@ class Order extends Model
         'tax',
         'discount',
         'status',
-        'payment_status',
+        'payment_id',
         'order_type',
         'customer_name',
     ];
