@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Enum\Orders\OrderStatus;
 
 class Order extends Model
 {
@@ -26,6 +27,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'status' => OrderStatus::class,
         'total_amount' => 'decimal:2',
         'tax' => 'decimal:2',
         'discount' => 'decimal:2',
