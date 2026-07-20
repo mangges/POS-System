@@ -11,9 +11,10 @@ trait CartCalculation
     public array $cart = [];
     public float $taxRate = 0.11;
     public float $discount = 0;
+    public ?int $cashReceived = null;
     protected CartCalculatorService $cartCalculatorService;
 
-    public function boot(CartCalculatorService $cartCalculatorService)
+    public function bootCartCalculation(CartCalculatorService $cartCalculatorService)
     {
         $this->cartCalculatorService = $cartCalculatorService;
     }
@@ -92,6 +93,18 @@ trait CartCalculation
     public function total()
     {
         return $this->cartCalculatorService->total($this->subtotal, $this->taxAmount);
+    }
+
+    #[Computed]
+    public function change()
+    {
+        if ($this->cashReceived === null) {
+            return null;
+        }
+
+        $change = $this->cashReceived - $this->total;
+
+        return $change >= 0 ? $change : 0;
     }
 
     public function syncCart($key)

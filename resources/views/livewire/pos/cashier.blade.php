@@ -117,6 +117,15 @@
 
             <div class="cart-summary">
                 <div class="summary-row">
+                    <span>Nama Pelanggan</span>
+                    <input 
+                        type="text" 
+                        wire:model.live.debounce.300ms="customerName" 
+                        placeholder="Masukkan nama pelanggan"
+                        x-data
+                        @input="$el.value = $el.value.replace(/[^a-zA-Z\s]/g, '')">
+                </div>
+                <div class="summary-row">
                     <span>Subtotal</span>
                     <span>Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
                 </div>
@@ -129,7 +138,7 @@
                     <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                 </div>
                 
-                <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0) disabled @endif>
+                <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
                     Proses Pembayaran
                 </button>
                 
@@ -139,6 +148,10 @@
                     </div>
                 @endif
             </div>
+        </div>
+
+        <div class="payment-modal-overlay @if(!$showPaymentModal) closed @endif">
+            @include('livewire.pos.payment_modal')
         </div>
     </div>
 </div>

@@ -4,8 +4,10 @@ namespace App\Livewire\Pos;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Customer;
 use App\Traits\CartCalculation;
 use Livewire\Component;
+use App\Services\Order\OrderService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +19,19 @@ class Cashier extends Component
     public $products = [];
     public ?int $selectedCategory = null;
     public $search = '';
+    protected OrderService $orderService;
+    public $customerName = '';
+    public $showPaymentModal = false;
+    public string $paymentMethod = 'cash';
+    public ?int $currentOrderId = null;
+    public string $orderType = 'dine-in';
 
     use CartCalculation;
+
+    public function boot(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
 
     public function mount()
     {
@@ -64,12 +77,37 @@ class Cashier extends Component
 
     public function checkout()
     {
-        if (empty($this->cart)) return;
+        if (empty($this->cart) || empty($this->customerName)) return;
 
-        // Implement checkout logic here (insert to orders, order_items, decrement stock)
+        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType);
         
-        $this->cart = []; // clear cart after successful checkout
-        session()->flash('message', 'Pesanan berhasil diproses!');
+        $this->currentOrderId = $order->id;
+        $this->showPaymentModal = true;
+    }
+
+    public function finalizeOrder()
+    {
+        if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
+
+        $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+        $this->resetCashier();
+        $this->closePaymentModal();
+    }
+
+    public function resetCashier()
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType']);
+    }
+
+    private function findCustomerIdByName($name)
+    {
+        $customer = Customer::where('name', $name)->first();
+        return $customer ? $customer->id : null;
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
     }
 
     public function render()
