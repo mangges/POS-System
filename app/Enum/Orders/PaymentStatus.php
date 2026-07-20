@@ -4,15 +4,15 @@ namespace App\Enum\Orders;
 
 enum PaymentStatus: string
 {
-    case Unpaid = 'unpaid';
-    case Paid = 'paid';
+    case Pending = 'pending';
+    case Success = 'success';
     case Failed = 'failed';
 
     public function label(): string
     {
         return match($this) {
-            self::Unpaid => 'Unpaid',
-            self::Paid => 'Paid',
+            self::Pending => 'Pending',
+            self::Success => 'success',
             self::Failed => 'Failed',
         };
     }
@@ -20,8 +20,8 @@ enum PaymentStatus: string
     public function color(): string
     {
         return match($this) {
-            self::Unpaid => 'yellow',
-            self::Paid => 'green',
+            self::Pending => 'yellow',
+            self::Success => 'green',
             self::Failed => 'red',
         };
     }
