@@ -5,7 +5,7 @@ namespace App\Enum\Orders;
 enum OrderStatus: string
 {
     case Pending        = 'pending';
-    case Completed           = 'completed';
+    case Completed      = 'completed';
     case Cancelled      = 'cancelled';
 
     public function label(): string
