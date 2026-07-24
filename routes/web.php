@@ -16,7 +16,7 @@ Route::get('/login', App\Livewire\Auth\Login::class)->name('login')->middleware(
 // ---------------------------------------------------------------------------
 // Cashier (requires authenticated session)
 // ---------------------------------------------------------------------------
-Route::get('/cashier', App\Livewire\Pos\Cashier::class)->middleware('auth');
+Route::get('/cashier', App\Livewire\Pos\Cashier::class)->middleware('auth')->name('cashier');
 
 // ---------------------------------------------------------------------------
 // Customer Self-Order — two entry points:
