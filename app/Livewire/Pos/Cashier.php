@@ -5,8 +5,10 @@ namespace App\Livewire\Pos;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Customer;
+use App\Models\Order;
 use App\Traits\CartCalculation;
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 use App\Services\Order\OrderService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -21,12 +23,18 @@ class Cashier extends Component
     public $search = '';
     protected OrderService $orderService;
     public $customerName = '';
-    public $showPaymentModal = false;
     public string $paymentMethod = 'cash';
     public ?int $currentOrderId = null;
     public string $orderType = 'dine-in';
 
-    use CartCalculation;
+    public $activeDraft = null;
+    
+    public $showPaymentModal = false;
+    public $showDraftsModal = false;
+
+    use CartCalculation {
+        addToCart as protected traitAddToCart;
+    }
 
     public function boot(OrderService $orderService)
     {
@@ -37,6 +45,92 @@ class Cashier extends Component
     {
         $this->categories = Category::all();
         $this->loadProducts();
+    }
+
+    public function addToCart(...$params)
+    {
+        if ($this->showDraftsModal) {
+            $this->closeDraftsModal();
+        }
+
+        $this->traitAddToCart(...$params);
+    }
+
+    #[Computed]
+    public function draftOrders()
+    {
+        return Order::where('status', 'pending')->get();
+    }
+
+    public function loadDraft(int $id): void
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
+        
+        $order = Order::with('items')->findOrFail($id);
+
+        $this->activeDraft = $order->id;
+
+        if ($order) {
+
+            $this->cart = $order->items->map(function ($item) {
+                $name = Product::findOrFail($item->product_id)->name;
+                
+                return [
+                    'id' => $item->product_id,
+                    'name' => $name,
+                    'price' => $item->price,
+                    'qty' => $item->quantity,
+                ];
+            })->toArray();
+            
+            $this->customerName = $order->customer_name;
+            $this->orderType = $order->order_type;
+            $this->currentOrderId = $order->id;
+            $this->closeDraftsModal();
+        }
+    }
+
+    public function openDraftsModal()
+    {
+        $this->showDraftsModal = true;
+    }
+
+    public function closeDraftsModal()
+    {
+        $this->showDraftsModal = false;
+    }
+
+    public function saveDraft()
+    {
+        if (empty($this->cart)) return;
+
+        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+
+        $this->activeDraft = null;
+        $this->reset('cart', 'customerName');
+        return redirect()->route('cashier')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
+    }
+
+    public function deleteDraft(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $order = Order::findOrFail($id);
+            $payment = $order->payment;
+
+            $order->payment_id = null;
+            $order->save();
+
+            $order->items()->delete();
+
+            if ($payment) {
+                $payment->delete();
+            }
+
+            $order->delete();
+        });
+
+
+        return redirect()->back()->with('message', 'Draft berhasil dihapus!')->with('type', 'success');
     }
 
     public function updatedSearch()
@@ -79,7 +173,7 @@ class Cashier extends Component
     {
         if (empty($this->cart) || empty($this->customerName)) return;
 
-        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType);
+        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
         
         $this->currentOrderId = $order->id;
         $this->showPaymentModal = true;

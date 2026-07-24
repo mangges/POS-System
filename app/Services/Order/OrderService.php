@@ -15,24 +15,36 @@ class OrderService
         private CartCalculatorService $cartCalculatorService
     ) {}
 
-    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null): Order
+    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null): Order
     {
         $cartSubtotal = $this->cartCalculatorService->subtotal($cartItems);
         $cartTax = $this->cartCalculatorService->tax($cartSubtotal);
         $totalAmount = $this->cartCalculatorService->total($cartSubtotal, $cartTax);
-        $order =  Order::create([
-            'order_number' => $this->createOrderNumber(),
+        $data = [
             'table_id' => $tableId,
             'customer_id' => null,
             'customer_name' => $customerName,
-            'user_id' => Auth::id(),
             'total_amount' => $totalAmount,
             'tax' => $cartTax,
             'discount' => 0,
             'status' => OrderStatus::Pending,
             'payment_id' => null,
             'order_type' => $orderType,
-        ]);
+        ];
+        
+        if ($activeDraft) {
+            $order = Order::findOrFail($activeDraft);
+            $order->update($data);
+        } else {
+            $additionalData = [
+                'order_number' => $this->createOrderNumber(),
+                'user_id' => Auth::id(),
+            ];
+            
+            $order = Order::create(array_merge($data, $additionalData));
+        }
+
+        $this->storeOrderItem($order->id, $cartItems, $activeDraft);
 
         $payment = Payment::create([
             'order_id' => $order->id,
