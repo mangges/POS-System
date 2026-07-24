@@ -3,6 +3,7 @@
 namespace App\Services\Order;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Services\Cart\CartCalculatorService;
 use Illuminate\Support\Facades\Auth;
@@ -59,6 +60,39 @@ class OrderService
         ]);
 
         return $order;
+    }
+
+    public function storeOrderItem(int $orderId, array $cartItems, ?int $activeDraft = null): void
+    {
+        foreach ($cartItems as $item) {
+            $subtotal = $this->cartCalculatorService->subtotal($item);
+
+            $data = [
+                "order_id" => $orderId,
+                "product_id" => $item['id'],
+                "quantity" => $item['qty'],
+                "price" => $item['price'],
+                "subtotal" => $subtotal,
+                "notes" => $item['notes'] ?? null,
+                "is_custom_price" => $item['is_custom_price'] ?? false,
+            ];
+
+            if ($activeDraft) {
+                $orderItem = OrderItem::where('order_id', $orderId)
+                    ->where('product_id', $item['id'])
+                    ->first();
+
+                if ($orderItem) {
+                    $orderItem->update($data);
+                    continue;
+                } else {
+                    OrderItem::create($data);
+                }
+            } else {
+                OrderItem::create($data);
+            }
+
+        }
     }
 
     public function finalizeOrder(?int $orderId, string $paymentMethod, ?float $cashReceived = null, ?string $orderType = null): Order

@@ -10,6 +10,9 @@ class CartCalculatorService
 
     public function subtotal(array $items): float
     {
+        if (!array_is_list($items)) {
+            return $items['price'] * $items['qty'];
+        }
         return collect($items)->sum(fn($i) => $i['price'] * $i['qty']);
     }
 
