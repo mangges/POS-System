@@ -12,7 +12,7 @@ enum OrderStatus: string
     {
         return match($this) {
             self::Pending        => 'Pending',
-            self::Completed           => 'Completed',
+            self::Completed      => 'Completed',
             self::Cancelled      => 'Cancelled',
         };
     }
@@ -21,7 +21,7 @@ enum OrderStatus: string
     {
         return match($this) {
             self::Pending        => 'yellow',
-            self::Completed           => 'green',
+            self::Completed      => 'green',
             self::Cancelled      => 'red',
         };
     }

@@ -1,6 +1,9 @@
 <?php
 
-use App\Http\Controllers\OrderController;
+use App\Livewire\Pos\Cashier;
+use App\Livewire\Auth\Login;
+use App\Livewire\LandingPage\LandingPage;
+use App\Livewire\Pos\Receipt;
 use Illuminate\Support\Facades\Route;
 
 // ---------------------------------------------------------------------------
@@ -11,12 +14,15 @@ Route::get('/', fn () => redirect()->route('login'));
 // ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
-Route::get('/login', App\Livewire\Auth\Login::class)->name('login')->middleware('guest');
+Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 // ---------------------------------------------------------------------------
 // Cashier (requires authenticated session)
 // ---------------------------------------------------------------------------
-Route::get('/cashier', App\Livewire\Pos\Cashier::class)->middleware('auth')->name('cashier');
+Route::middleware('auth')->prefix('cashier')->name('cashier.')->group(function () {
+    Route::get('/', Cashier::class)->name('index');
+    Route::get('/receipt/{orderId}', Receipt::class)->name('receipt');
+});
 
 // ---------------------------------------------------------------------------
 // Customer Self-Order — two entry points:
@@ -25,4 +31,6 @@ Route::get('/cashier', App\Livewire\Pos\Cashier::class)->middleware('auth')->nam
 //   2. QR-code route at /order/{table_token} — validated by OrderController
 //      Uses qr_token (not table PK) in the URL for security.
 // ---------------------------------------------------------------------------
-Route::get('/order/{table_token}', App\Livewire\LandingPage\LandingPage::class)->name('order');
+#Public route for customer self-ordering (legacy, no table context)
+Route::get('/order/{table_token}', LandingPage::class)->name('order');
+Route::get('/{token}', Receipt::class)->name('receipt.show');

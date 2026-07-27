@@ -133,7 +133,7 @@
         </div>
 
         <div class="submit-action-wrapper">
-            <button type="button" wire:click="finalizeOrder" class="btn-submit-payment">
+            <button type="button" wire:click="finalizeOrder" class="btn-submit-payment" @if($isInsufficient || $cashReceived === null) disabled @endif>
                 <i class="fas fa-check-circle"></i>
                 <span>Selesai & Cetak Struk</span>
             </button>

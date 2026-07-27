@@ -99,15 +99,18 @@ class OrderService
     {
         $order = Order::find($orderId);
         $payment = $order->payment;
+        $token = bin2hex(random_bytes(16));
 
         if ($paymentMethod === 'cash' && $cashReceived < $order->total_amount) {
             throw new \Exception('Cash received is less than the total amount.');
         }
+
         $order->update([
-            'order_status' => OrderStatus::Completed,
+            'status' => OrderStatus::Completed,
             'payment_id' => $payment->id,
             'payment_method' => $paymentMethod,
             'order_type' => $orderType,
+            'token' => $token,
         ]);
 
         $payment->update([

@@ -365,6 +365,12 @@
 .btn-submit-payment:hover { background-color: #1d4ed8; }
 .btn-submit-payment:active { transform: scale(0.98); }
 
+.btn-submit-payment:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .section-disabled {
     position: relative;
     opacity: 0.4;

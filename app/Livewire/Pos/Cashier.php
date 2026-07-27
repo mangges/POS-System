@@ -2,16 +2,18 @@
 
 namespace App\Livewire\Pos;
 
+use Livewire\Component;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Computed;
+
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Traits\CartCalculation;
-use Livewire\Component;
-use Livewire\Attributes\Computed;
 use App\Services\Order\OrderService;
+
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 
 #[Layout('components.layouts.app')]
@@ -108,7 +110,7 @@ class Cashier extends Component
 
         $this->activeDraft = null;
         $this->reset('cart', 'customerName');
-        return redirect()->route('cashier')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
+        return redirect()->route('cashier.index')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
     }
 
     public function deleteDraft(int $id)
@@ -183,9 +185,11 @@ class Cashier extends Component
     {
         if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
 
-        $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
         $this->resetCashier();
         $this->closePaymentModal();
+
+        $this->showReceipt($order->id);
     }
 
     public function resetCashier()
@@ -202,6 +206,11 @@ class Cashier extends Component
     public function closePaymentModal()
     {
         $this->showPaymentModal = false;
+    }
+
+    public function showReceipt($orderId)
+    {
+        return redirect()->route('cashier.receipt', ['orderId' => $orderId]);
     }
 
     public function render()
