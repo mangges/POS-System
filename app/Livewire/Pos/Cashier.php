@@ -2,12 +2,18 @@
 
 namespace App\Livewire\Pos;
 
+use Livewire\Component;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Computed;
+
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Customer;
+use App\Models\Order;
 use App\Traits\CartCalculation;
-use Livewire\Component;
+use App\Services\Order\OrderService;
+
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 
 #[Layout('components.layouts.app')]
@@ -17,13 +23,116 @@ class Cashier extends Component
     public $products = [];
     public ?int $selectedCategory = null;
     public $search = '';
+    protected OrderService $orderService;
+    public $customerName = '';
+    public string $paymentMethod = 'cash';
+    public ?int $currentOrderId = null;
+    public string $orderType = 'dine-in';
 
-    use CartCalculation;
+    public $activeDraft = null;
+    
+    public $showPaymentModal = false;
+    public $showDraftsModal = false;
+
+    use CartCalculation {
+        addToCart as protected traitAddToCart;
+    }
+
+    public function boot(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
 
     public function mount()
     {
         $this->categories = Category::all();
         $this->loadProducts();
+    }
+
+    public function addToCart(...$params)
+    {
+        if ($this->showDraftsModal) {
+            $this->closeDraftsModal();
+        }
+
+        $this->traitAddToCart(...$params);
+    }
+
+    #[Computed]
+    public function draftOrders()
+    {
+        return Order::where('status', 'pending')->get();
+    }
+
+    public function loadDraft(int $id): void
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
+        
+        $order = Order::with('items')->findOrFail($id);
+
+        $this->activeDraft = $order->id;
+
+        if ($order) {
+
+            $this->cart = $order->items->map(function ($item) {
+                $name = Product::findOrFail($item->product_id)->name;
+                
+                return [
+                    'id' => $item->product_id,
+                    'name' => $name,
+                    'price' => $item->price,
+                    'qty' => $item->quantity,
+                ];
+            })->toArray();
+            
+            $this->customerName = $order->customer_name;
+            $this->orderType = $order->order_type;
+            $this->currentOrderId = $order->id;
+            $this->closeDraftsModal();
+        }
+    }
+
+    public function openDraftsModal()
+    {
+        $this->showDraftsModal = true;
+    }
+
+    public function closeDraftsModal()
+    {
+        $this->showDraftsModal = false;
+    }
+
+    public function saveDraft()
+    {
+        if (empty($this->cart)) return;
+
+        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+
+        $this->activeDraft = null;
+        $this->reset('cart', 'customerName');
+        return redirect()->route('cashier.index')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
+    }
+
+    public function deleteDraft(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $order = Order::findOrFail($id);
+            $payment = $order->payment;
+
+            $order->payment_id = null;
+            $order->save();
+
+            $order->items()->delete();
+
+            if ($payment) {
+                $payment->delete();
+            }
+
+            $order->delete();
+        });
+
+
+        return redirect()->back()->with('message', 'Draft berhasil dihapus!')->with('type', 'success');
     }
 
     public function updatedSearch()
@@ -64,12 +173,44 @@ class Cashier extends Component
 
     public function checkout()
     {
-        if (empty($this->cart)) return;
+        if (empty($this->cart) || empty($this->customerName)) return;
 
-        // Implement checkout logic here (insert to orders, order_items, decrement stock)
+        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
         
-        $this->cart = []; // clear cart after successful checkout
-        session()->flash('message', 'Pesanan berhasil diproses!');
+        $this->currentOrderId = $order->id;
+        $this->showPaymentModal = true;
+    }
+
+    public function finalizeOrder()
+    {
+        if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
+
+        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+        $this->resetCashier();
+        $this->closePaymentModal();
+
+        $this->showReceipt($order->id);
+    }
+
+    public function resetCashier()
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType']);
+    }
+
+    private function findCustomerIdByName($name)
+    {
+        $customer = Customer::where('name', $name)->first();
+        return $customer ? $customer->id : null;
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
+    }
+
+    public function showReceipt($orderId)
+    {
+        return redirect()->route('cashier.receipt', ['orderId' => $orderId]);
     }
 
     public function render()

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enum\Orders\PaymentStatus;
 
 class Payment extends Model
 {
@@ -13,14 +14,15 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'payment_method',
-        'amount_paid',
+        'amount',
         'change',
         'status',
         'transaction_id',
     ];
 
     protected $casts = [
-        'amount_paid' => 'decimal:2',
+        'status' => PaymentStatus::class,
+        'amount' => 'decimal:2',
         'change' => 'decimal:2',
     ];
 

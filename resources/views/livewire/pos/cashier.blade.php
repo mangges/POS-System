@@ -3,7 +3,7 @@
     <header class="pos-header">
         <div class="header-brand">
             <div class="brand-logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <i class="bi bi-house-door-fill"></i>
             </div>
             <h1>POS F&B</h1>
         </div>
@@ -83,9 +83,13 @@
         <div class="pos-sidebar">
             <div class="cart-header">
                 <h2>Pesanan Saat Ini</h2>
+                <button wire:click="openDraftsModal" class="draft-lists-button">
+                    <i class="bi bi-archive"></i>
+                </button>
             </div>
             
             <div class="cart-items">
+                {{-- {{ dd($cart) }} --}}
                 @if(count($cart) === 0)
                     <div class="empty-cart">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
@@ -117,6 +121,15 @@
 
             <div class="cart-summary">
                 <div class="summary-row">
+                    <span>Nama Pelanggan</span>
+                    <input 
+                        type="text" 
+                        wire:model.live.debounce.300ms="customerName" 
+                        placeholder="Masukkan nama pelanggan"
+                        x-data
+                        @input="$el.value = $el.value.replace(/[^a-zA-Z\s]/g, '')">
+                </div>
+                <div class="summary-row">
                     <span>Subtotal</span>
                     <span>Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
                 </div>
@@ -128,17 +141,24 @@
                     <span>Total</span>
                     <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                 </div>
-                
-                <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0) disabled @endif>
-                    Proses Pembayaran
-                </button>
-                
-                @if (session()->has('message'))
-                    <div class="alert-success">
-                        {{ session('message') }}
-                    </div>
-                @endif
+
+                <div class="buttons-row">
+                    <button class="draft-btn" wire:click="saveDraft" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
+                        Draft Pesanan
+                    </button>
+                    <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
+                        Proses Pembayaran
+                    </button>
+                </div>
             </div>
+
+            <div class="drafts-modal-overlay @if(!$showDraftsModal) closed @endif">
+                @include('livewire.pos.drafts_modal')
+            </div>
+        </div>
+
+        <div class="payment-modal-overlay @if(!$showPaymentModal) closed @endif">
+            @include('livewire.pos.payment_modal')
         </div>
     </div>
 </div>
