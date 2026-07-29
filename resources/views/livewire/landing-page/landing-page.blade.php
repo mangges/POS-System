@@ -3,19 +3,13 @@
     @scroll.window="scrolled = (window.pageYOffset > 40)">
     @vite('resources/css/landing-page.css')
 
-    <!-- Announcement Bar -->
-    <div class="announcement-bar">
-        <div class="announcement-inner">
-            <span class="announcement-dot"></span>
-            <span>Selamat datang &mdash; Pesan langsung dari meja Anda, tanpa antri, tanpa ribet</span>
-            <span class="announcement-dot"></span>
-        </div>
-    </div>
-
     <!-- Navbar -->
-    <nav :class="scrolled ? 'navbar' : 'nav-bar'">
+    <nav :class="`navbar ${scrolled ? 'scrolled' : ''}`">
         <div class="nav-left">
-            <a href="#" class="brand-text">POS System</a>
+            <a href="#" class="brand-logo">
+                <span class="brand-mark">P</span>
+                <span class="brand-text">POS System</span>
+            </a>
             <div class="table-number">
                 <span>{{ $table->name }}</span>
             </div>
@@ -33,72 +27,64 @@
 
     <div class="main-container">
 
-        <!-- Hero Section -->
+        <!-- Hero Banner -->
         <div class="hero">
-            <div class="hero-badge">
-                <span class="hero-badge-dot"></span>
-                <span>Menu Eksklusif Kami</span>
-                <span class="hero-badge-dot"></span>
+            <div class="hero-media">
+                <img src="{{ asset('images/coffee.jpg') }}" alt="Suasana Restoran" class="hero-banner-img">
+                <div class="hero-scrim"></div>
             </div>
-            <h1 class="hero-title">Eksplorasi Rasa<br><em class="hero-title-italic">yang Sempurna</em></h1>
-            <p class="hero-subtitle">Temukan menu favoritmu, pesan langsung dari meja, dan nikmati hidangan berkualitas
-                dengan pengalaman bersantap yang elegan.</p>
-            <div class="hero-divider">
-                <span class="divider-line"></span>
-                <span class="divider-ornament">&#9670;</span>
-                <span class="divider-line"></span>
+            <div class="hero-content">
+                <span class="hero-eyebrow">Menu Digital</span>
+                <h1 class="hero-title">Selamat Datang di {{ $table->name }}</h1>
+                <p class="hero-subtitle">Pilih menu favorit Anda dan pesan langsung dari meja, tanpa perlu menunggu
+                    pelayan.</p>
+                <a href="#menu" class="hero-cta">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                    Lihat Menu
+                </a>
             </div>
         </div>
 
-        <!-- Stats Bar -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-icon">
+        <!-- Feature Strip -->
+        <div class="feature-strip">
+            <div class="feature-item">
+                <span class="feature-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-value">{{ $products->count() }}+</span>
-                    <span class="stat-label">Pilihan Menu</span>
-                </div>
+                </span>
+                <span class="feature-label">Pesan Realtime</span>
             </div>
-            <div class="stat-sep"></div>
-            <div class="stat-item">
-                <div class="stat-icon">
+            <div class="feature-item">
+                <span class="feature-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-value">08.00 &ndash; 22.00</span>
-                    <span class="stat-label">Jam Operasional</span>
-                </div>
+                </span>
+                <span class="feature-label">Higienis &amp; Fresh</span>
             </div>
-            <div class="stat-sep"></div>
-            <div class="stat-item">
-                <div class="stat-icon">
+            <div class="feature-item">
+                <span class="feature-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-12V7a4 4 0 00-8 0v2" />
                     </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-value">Segar Setiap Hari</span>
-                    <span class="stat-label">Bahan Berkualitas Pilihan</span>
-                </div>
+                </span>
+                <span class="feature-label">Pembayaran Aman</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </span>
+                <span class="feature-label">Tanpa Antre</span>
             </div>
         </div>
 
         <!-- Menu Section Header -->
-        <div class="section-header-block">
-            <div class="section-ornament">
-                <span class="ornament-line"></span>
-                <span class="ornament-icon">&#9670;</span>
-                <span class="ornament-line"></span>
-            </div>
+        <div class="section-header-block" id="menu">
             <h2 class="section-main-title">Daftar Menu Kami</h2>
             <p class="section-main-sub">Setiap hidangan disiapkan dengan dedikasi penuh menggunakan bahan-bahan pilihan
                 terbaik.</p>
@@ -162,34 +148,26 @@
                                 <div class="out-of-stock-overlay">
                                     <span class="out-of-stock-badge">Habis</span>
                                 </div>
-                            @else
-                                <div class="product-hover-overlay">
-                                    <span class="product-hover-text">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:5px;">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        Lihat Detail
-                                    </span>
-                                </div>
-                            @endif
-                            @if ($product->category)
-                                <span class="product-category-badge">{{ $product->category->name }}</span>
                             @endif
                         </div>
                         <div class="product-content">
                             <h3 class="product-title">{{ $product->name }}</h3>
-                            <p class="product-desc">{{ $product->description }}</p>
+                            @if ($product->category)
+                                <span class="product-category">{{ $product->category->name }}</span>
+                            @endif
                             <div class="product-footer">
                                 <span class="product-price">Rp
                                     {{ number_format($product->price, 0, ',', '.') }}</span>
                                 @if (!$product->is_out_of_stock)
-                                    <span class="product-order-cta"
-                                        wire:click.stop="dispatch('trigger-cart-animation', { productId: {{ $product->id }} })">+ Pesan</span>
+                                    <button type="button" class="add-to-cart-btn"
+                                        wire:click.stop="dispatch('trigger-cart-animation', { productId: {{ $product->id }} })"
+                                        aria-label="Tambah ke keranjang">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </button>
                                 @endif
                             </div>
                         </div>
@@ -198,66 +176,9 @@
             </div>
         @endif
 
-        <!-- Features Section -->
-        <div class="features-section">
-            <div class="section-header-block">
-                <div class="section-ornament">
-                    <span class="ornament-line"></span>
-                    <span class="ornament-icon">&#9670;</span>
-                    <span class="ornament-line"></span>
-                </div>
-                <h2 class="section-main-title">Mengapa Memilih Kami</h2>
-                <p class="section-main-sub">Komitmen kami untuk menghadirkan pengalaman bersantap yang tak terlupakan.
-                </p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Bahan Segar Pilihan</h3>
-                    <p class="feature-desc">Kami menggunakan bahan-bahan berkualitas tinggi yang dipilih setiap harinya
-                        untuk menjamin cita rasa terbaik di setiap hidangan yang kami sajikan.</p>
-                </div>
-                <div class="feature-card feature-card-center">
-                    <div class="feature-icon-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Chef Berpengalaman</h3>
-                    <p class="feature-desc">Tim koki profesional kami menghadirkan cita rasa autentik dengan sentuhan
-                        modern yang kreatif, memanjakan selera setiap tamu yang datang.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Pelayanan Cepat &amp; Tepat</h3>
-                    <p class="feature-desc">Sistem pemesanan digital kami memastikan setiap pesanan diproses dengan
-                        cepat dan akurat, langsung dari genggaman tangan Anda.</p>
-                </div>
-            </div>
-        </div>
-
         <!-- FAQ Section -->
         <div class="faq-section">
             <div class="section-header-block">
-                <div class="section-ornament">
-                    <span class="ornament-line"></span>
-                    <span class="ornament-icon">&#9670;</span>
-                    <span class="ornament-line"></span>
-                </div>
                 <h2 class="section-main-title">Pertanyaan Umum</h2>
                 <p class="section-main-sub">Temukan jawaban dari pertanyaan yang paling sering ditanyakan pelanggan
                     kami.</p>
@@ -331,56 +252,6 @@
             </div>
         </div>
 
-        <!-- Profile Section -->
-        <div class="profile-section">
-            <div class="section-header-block">
-                <div class="section-ornament">
-                    <span class="ornament-line"></span>
-                    <span class="ornament-icon">&#9670;</span>
-                    <span class="ornament-line"></span>
-                </div>
-                <h2 class="section-main-title">Tentang POS System</h2>
-            </div>
-            <div class="profile-card">
-                <div class="profile-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
-                    </svg>
-                </div>
-                <h3>Elegansi dalam Setiap Pesanan</h3>
-                <p>POS System menghadirkan pengalaman bersantap yang modern dan elegan. Pesan langsung dari meja Anda,
-                    nikmati momen berharga bersama orang-orang tersayang, dan biarkan kami mengurus sisanya.</p>
-                <div class="profile-hours">
-                    <div class="hours-row">
-                        <div class="hours-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div>
-                                <span class="hours-day">Senin &ndash; Jumat</span>
-                                <span class="hours-time">08.00 &ndash; 22.00 WIB</span>
-                            </div>
-                        </div>
-                        <div class="hours-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div>
-                                <span class="hours-day">Sabtu &ndash; Minggu</span>
-                                <span class="hours-time">07.00 &ndash; 23.00 WIB</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <!-- Footer Section -->
@@ -393,31 +264,40 @@
             </div>
             <div class="footer-links">
                 <h4 class="footer-heading">Sosial Media</h4>
-                <div class="social-icons">
-                    <a href="#" class="social-link" aria-label="Instagram">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                        </svg>
+                <div class="social-list">
+                    <a href="#" class="social-handle">
+                        <span class="social-link" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                        </span>
+                        <span>@pos-system</span>
                     </a>
-                    <a href="#" class="social-link" aria-label="Facebook">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                        </svg>
+                    <a href="#" class="social-handle">
+                        <span class="social-link" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                            </svg>
+                        </span>
+                        <span>@pos-system</span>
                     </a>
-                    <a href="#" class="social-link" aria-label="Twitter">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path
-                                d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
-                            </path>
-                        </svg>
+                    <a href="#" class="social-handle">
+                        <span class="social-link" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+                                </path>
+                            </svg>
+                        </span>
+                        <span>@pos-system</span>
                     </a>
                 </div>
             </div>
@@ -539,16 +419,16 @@
     <!-- Product Detail Modal -->
     @if ($selectedProduct)
         <div class="product-modal-overlay" wire:click.self="closeProductModal">
-            <div class="product-modal-content">
-                <button class="product-modal-close" wire:click="closeProductModal">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-
+            <div class="product-modal-content" wire:key="product-modal-{{ $selectedProduct->id }}">
                 <div class="product-modal-img-container">
+                    <button class="product-modal-close" wire:click="closeProductModal" aria-label="Kembali">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
                     @if ($selectedProduct->image)
                         <img src="{{ Storage::url($selectedProduct->image) }}" alt="{{ $selectedProduct->name }}"
                             class="product-modal-img">
@@ -569,26 +449,35 @@
                 </div>
 
                 <div class="product-modal-details">
-                    @if ($selectedProduct->category)
-                        <span class="modal-category-tag">{{ $selectedProduct->category->name }}</span>
-                    @endif
-                    <h2 class="product-modal-title">{{ $selectedProduct->name }}</h2>
-                    <div class="product-modal-price">Rp {{ number_format($selectedProduct->price, 0, ',', '.') }}
+                    <div class="product-modal-title-row">
+                        <h2 class="product-modal-title">{{ $selectedProduct->name }}</h2>
+                        <span class="product-modal-price">Rp
+                            {{ number_format($selectedProduct->price, 0, ',', '.') }}</span>
                     </div>
-                    <div class="product-modal-divider"></div>
+                    @if ($selectedProduct->category)
+                        <span class="product-modal-category">{{ $selectedProduct->category->name }}</span>
+                    @endif
                     <div class="product-modal-desc">
                         {{ $selectedProduct->description ?? 'Tidak ada deskripsi tersedia untuk menu ini.' }}
                     </div>
 
-                    <button wire:click="dispatch('trigger-cart-animation', { productId: {{ $selectedProduct->id }} })"
-                        @if ($selectedProduct->is_out_of_stock) disabled @endif class="modal-add-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:24px; height:24px;" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4v16m8-8H4" />
-                        </svg>
-                        {{ $selectedProduct->is_out_of_stock ? 'Stok Habis' : 'Tambah ke Keranjang' }}
-                    </button>
+                    @if ($selectedProduct->is_out_of_stock)
+                        <button disabled class="modal-add-btn modal-add-btn-full">Stok Habis</button>
+                    @else
+                        <div class="modal-action-row" x-data="{ qty: 1 }">
+                            <div class="modal-qty-stepper">
+                                <button type="button" @click="qty = Math.max(1, qty - 1)" class="modal-qty-btn"
+                                    aria-label="Kurangi jumlah">&minus;</button>
+                                <span class="modal-qty-value" x-text="qty">1</span>
+                                <button type="button" @click="qty++" class="modal-qty-btn"
+                                    aria-label="Tambah jumlah">+</button>
+                            </div>
+                            <button type="button" class="modal-add-btn"
+                                @click="(() => { for (let i = 0; i < qty; i++) { $wire.dispatch('trigger-cart-animation', { productId: {{ $selectedProduct->id }} }) } qty = 1 })()">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
