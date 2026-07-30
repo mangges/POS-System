@@ -279,7 +279,7 @@ h1, h2, h3, .brand-text {
 /* Hero Banner */
 .hero {
     position: relative;
-    height: 340px;
+    height: 540px;
     overflow: hidden;
     margin: 0 -1.5rem 2.5rem -1.5rem;
     isolation: isolate;
@@ -779,6 +779,10 @@ h1, h2, h3, .brand-text {
     border-radius: var(--radius-full);
 }
 
+.cart-items {
+    margin: 0 -2rem;
+}
+
 .cart-item {
     display: flex;
     flex-direction: row;
@@ -791,7 +795,12 @@ h1, h2, h3, .brand-text {
 }
 
 .cart-item:last-child {
-    border-bottom: none;
+    padding-bottom: inherit;
+    border-bottom: 1px solid var(--color-border)
+}
+
+.cart-item:first-child {
+    border-top: 1px solid var(--color-border);
 }
 
 .cart-item-img {
@@ -904,14 +913,11 @@ h1, h2, h3, .brand-text {
     gap: 18px;
 }
 
-.cart-property {
+.cart-summary-row {
     display: flex;
     justify-content: space-between;
     font-size: 0.9rem;
-    padding: 8px 18px;
-    background-color: var(--color-card-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
 }
 
 .total-price {
@@ -919,7 +925,9 @@ h1, h2, h3, .brand-text {
     justify-content: space-between;
     font-size: 1.25rem;
     font-weight: 800;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
     color: var(--color-text-main);
 }
 
@@ -1346,6 +1354,7 @@ h1, h2, h3, .brand-text {
     .footer-content { grid-template-columns: 1fr; gap: 2rem; }
     .section-main-title { font-size: 1.7rem; }
     .announcement-bar { font-size: 0.78rem; }
+    .chip-btn { padding: 0.4rem 1rem }
 }
 
 @media (max-width: 576px) {
@@ -1376,6 +1385,7 @@ h1, h2, h3, .brand-text {
     .add-to-cart-btn { width: 30px; height: 30px; }
     .add-to-cart-btn svg { width: 15px; height: 15px; }
     .main-container { padding: 2rem 1rem; }
+    .chip-btn { padding: 0.2rem 0.8rem }
 }
 
 @media (max-width: 360px) {

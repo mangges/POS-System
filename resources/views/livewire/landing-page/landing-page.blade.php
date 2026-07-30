@@ -398,12 +398,16 @@
             @if (count($cart) > 0)
                 <div class="cart-footer">
                     <div class="cart-total-row">
-                        <div class="cart-property">
-                            <span>PPN(11%)</span>
+                        <div class="cart-summary-row">
+                            <span>Subtotal</span>
+                            <span>Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="cart-summary-row">
+                            <span>PPN (11%)</span>
                             <span>Rp {{ number_format($this->taxAmount, 0, ',', '.') }}</span>
                         </div>
                         <div class="total-price">
-                            <span>Total Keseluruhan</span>
+                            <span>Total</span>
                             <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                         </div>
                     </div>

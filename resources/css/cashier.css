@@ -433,7 +433,7 @@ button {
 .cart-items {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -611,6 +611,7 @@ button {
     color: white;
     width: 100%;
     padding: 10px;
+    margin-top: 1rem;
     border-radius: var(--radius-xl);
     font-size: 14px;
     font-weight: 600;
