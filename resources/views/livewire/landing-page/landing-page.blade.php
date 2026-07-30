@@ -1,5 +1,5 @@
 <div class="landing-page" x-data="{ cartOpen: false, scrolled: false }"
-    x-effect="document.body.style.overflow = (cartOpen || {{ $selectedProduct ? 'true' : 'false' }}) ? 'hidden' : ''"
+    x-effect="document.body.style.overflow = (cartOpen || {{ $selectedProduct || $showPaymentModal ? 'true' : 'false' }}) ? 'hidden' : ''"
     @scroll.window="scrolled = (window.pageYOffset > 40)">
     @vite('resources/css/landing-page.css')
 
@@ -410,7 +410,7 @@
                             <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                         </div>
                     </div>
-                    <a href="#" class="checkout-btn">Pesan Sekarang</a>
+                    <a wire:click="openPaymentModal" @click="cartOpen = false" class="checkout-btn">Pesan Sekarang</a>
                     @if ($table)
                         <p class="cart-table-info">Pesanan akan diantar ke <strong>{{ $table->name }}</strong></p>
                     @endif
@@ -484,6 +484,11 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    <!-- Payment Modal -->
+    @if ($showPaymentModal)
+        @include('livewire.landing-page.payment_modal')
     @endif
 </div>
 @push('scripts')
