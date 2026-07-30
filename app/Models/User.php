@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -24,6 +25,11 @@ class User extends Authenticatable implements FilamentUser
     }
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public function notificationRecipients(): MorphMany
+    {
+        return $this->morphMany(AppNotificationRecipient::class, 'recipient');
+    }
 
     /**
      * Get the attributes that should be cast.
