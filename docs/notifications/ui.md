@@ -3,6 +3,7 @@
 **Status:** Draft
 **Terakhir diupdate:** 2026-07-30
 **Terkait dokumen:** [`prd.md`](./prd.md) · [`db.md`](./db.md) 
+**Icon:** Bootstrap Icon
 
 ---
 
@@ -12,6 +13,7 @@ Notifikasi tampil dalam 2 bentuk komponen di semua role:
 
 1. **Notification Bell (icon di navbar/header)** — indikator jumlah unread + trigger buka dropdown/panel.
 2. **Notification Panel/Dropdown** — daftar notifikasi, bisa di-scroll, dengan aksi per item.
+3. **Ringtone** (Optional)
 
 Untuk User (customer/landing page), ada tambahan:
 
