@@ -48,7 +48,7 @@
         </div>
 
         <!-- Feature Strip -->
-        <div class="feature-strip">
+        {{-- <div class="feature-strip">
             <div class="feature-item">
                 <span class="feature-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,7 +81,7 @@
                 </span>
                 <span class="feature-label">Tanpa Antre</span>
             </div>
-        </div>
+        </div> --}}
 
         <!-- Menu Section Header -->
         <div class="section-header-block" id="menu">
@@ -177,7 +177,7 @@
         @endif
 
         <!-- FAQ Section -->
-        <div class="faq-section">
+        {{-- <div class="faq-section">
             <div class="section-header-block">
                 <h2 class="section-main-title">Pertanyaan Umum</h2>
                 <p class="section-main-sub">Temukan jawaban dari pertanyaan yang paling sering ditanyakan pelanggan
@@ -250,8 +250,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-
+        </div> --}}
     </div>
 
     <!-- Footer Section -->

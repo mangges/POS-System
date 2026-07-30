@@ -51,6 +51,7 @@ h1, h2, h3, .brand-text {
 .navbar {
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: var(--shadow-sm);
     position: sticky;
     z-index: 40;
@@ -80,6 +81,19 @@ h1, h2, h3, .brand-text {
     max-width: 1200px;
     width: calc(100% - 2rem);
     border-radius: var(--radius-full)
+}
+
+.navbar.scrolled::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -1px;
+    z-index: -1;
+    background-color: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .navbar {
@@ -240,7 +254,6 @@ h1, h2, h3, .brand-text {
 
 /* Main Container */
 .main-container {
-    max-width: 1200px;
     margin: 0 auto;
     padding: 3rem 1.5rem;
 }
