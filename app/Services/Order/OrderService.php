@@ -122,6 +122,24 @@ class OrderService
         return $order;
     }
 
+    public function acceptOrder(int $orderId): Order
+    {
+        return Order::with('items')->findOrFail($orderId);
+    }
+
+    public function declineOrder(int $orderId): Order
+    {
+        $order = Order::findOrFail($orderId);
+
+        $order->update(['status' => OrderStatus::Cancelled]);
+
+        if ($order->payment) {
+            $order->payment->update(['status' => PaymentStatus::Failed]);
+        }
+
+        return $order;
+    }
+
     private function createOrderNumber(): string
     {
         $lastOrder = Order::latest()->first();
