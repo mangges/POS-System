@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Enum\Orders\OrderStatus;
 
 class Order extends Model
 {
@@ -22,11 +23,14 @@ class Order extends Model
         'tax',
         'discount',
         'status',
-        'payment_status',
+        'payment_id',
         'order_type',
+        'customer_name',
+        'token',
     ];
 
     protected $casts = [
+        'status' => OrderStatus::class,
         'total_amount' => 'decimal:2',
         'tax' => 'decimal:2',
         'discount' => 'decimal:2',
@@ -52,8 +56,8 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function payment(): HasOne
+    public function payment(): BelongsTo
     {
-        return $this->hasOne(Payment::class);
+        return $this->belongsTo(Payment::class);
     }
 }

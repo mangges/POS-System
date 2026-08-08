@@ -16,13 +16,14 @@ class OrderItem extends Model
         'quantity',
         'price',
         'subtotal',
-        'notes',
-        'status',
+        'notes', // Optional field for additional notes if needed
+        'is_custom_price', // New field to indicate if the price is custom
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'is_custom_price' => 'boolean',
     ];
 
     public function order(): BelongsTo

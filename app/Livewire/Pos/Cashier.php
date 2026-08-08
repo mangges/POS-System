@@ -3,31 +3,136 @@
 namespace App\Livewire\Pos;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
-use App\Models\Order;
-use App\Models\OrderItem;
+use Livewire\Attributes\Computed;
+
+use App\Models\Category;
 use App\Models\Product;
-use App\Services\OrderService;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Traits\CartCalculation;
+use App\Services\Order\OrderService;
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 #[Layout('components.layouts.app')]
 class Cashier extends Component
 {
     public $categories = [];
     public $products = [];
-    public $selectedCategory = null;
-    
-    public $cart = [];
-    public $taxRate = 0.11;
-    public $discount = 0;
-    
+    public ?int $selectedCategory = null;
     public $search = '';
+    protected OrderService $orderService;
     public $customerName = '';
+    public string $paymentMethod = 'cash';
+    public ?int $currentOrderId = null;
+    public string $orderType = 'dine-in';
+
+    public $activeDraft = null;
+    
+    public $showPaymentModal = false;
+    public $showDraftsModal = false;
+
+    use CartCalculation {
+        addToCart as protected traitAddToCart;
+    }
+
+    public function boot(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
 
     public function mount()
     {
-        $this->categories = DB::table('categories')->get();
+        $this->categories = Category::all();
         $this->loadProducts();
+    }
+
+    public function addToCart(...$params)
+    {
+        if ($this->showDraftsModal) {
+            $this->closeDraftsModal();
+        }
+
+        $this->traitAddToCart(...$params);
+    }
+
+    #[Computed]
+    public function draftOrders()
+    {
+        return Order::where('status', 'pending')->get();
+    }
+
+    public function loadDraft(int $id): void
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
+        
+        $order = Order::with('items')->findOrFail($id);
+
+        $this->activeDraft = $order->id;
+
+        if ($order) {
+
+            $this->cart = $order->items->map(function ($item) {
+                $name = Product::findOrFail($item->product_id)->name;
+                
+                return [
+                    'id' => $item->product_id,
+                    'name' => $name,
+                    'price' => $item->price,
+                    'qty' => $item->quantity,
+                ];
+            })->toArray();
+            
+            $this->customerName = $order->customer_name;
+            $this->orderType = $order->order_type;
+            $this->currentOrderId = $order->id;
+            $this->closeDraftsModal();
+        }
+    }
+
+    public function openDraftsModal()
+    {
+        $this->showDraftsModal = true;
+    }
+
+    public function closeDraftsModal()
+    {
+        $this->showDraftsModal = false;
+    }
+
+    public function saveDraft()
+    {
+        if (empty($this->cart)) return;
+
+        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+
+        $this->activeDraft = null;
+        $this->reset('cart', 'customerName');
+        return redirect()->route('cashier.index')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
+    }
+
+    public function deleteDraft(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $order = Order::findOrFail($id);
+            $payment = $order->payment;
+
+            $order->payment_id = null;
+            $order->save();
+
+            $order->items()->delete();
+
+            if ($payment) {
+                $payment->delete();
+            }
+
+            $order->delete();
+        });
+
+
+        return redirect()->back()->with('message', 'Draft berhasil dihapus!')->with('type', 'success');
     }
 
     public function updatedSearch()
@@ -37,7 +142,7 @@ class Cashier extends Component
 
     public function loadProducts()
     {
-        $query = DB::table('products')->where('is_active', true);
+        $query = Product::where('is_active', true);
         
         if ($this->selectedCategory) {
             $query->where('category_id', $this->selectedCategory);
@@ -52,7 +157,7 @@ class Cashier extends Component
 
     public function getUserInitialsProperty()
     {
-        $name = auth()->check() ? auth()->user()->name : 'Cashier Name';
+        $name = Auth::check() ? Auth::user()->name : 'Cashier Name';
         $words = explode(' ', $name);
         if (count($words) >= 2) {
             return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
@@ -64,83 +169,48 @@ class Cashier extends Component
     {
         $this->selectedCategory = $categoryId;
         $this->loadProducts();
-    }
-
-    public function addToCart($productId)
-    {
-        $product = collect($this->products)->firstWhere('id', $productId);
-        
-        if (!$product || $product->is_out_of_stock) {
-            return;
-        }
-
-        if (!$product->has_recipe && $product->stock !== null && $product->stock <= 0) {
-            return;
-        }
-
-        $cartIndex = collect($this->cart)->search(fn($item) => $item['id'] === $productId);
-
-        if ($cartIndex !== false) {
-            $this->cart[$cartIndex]['qty']++;
-            $this->cart[$cartIndex]['subtotal'] = $this->cart[$cartIndex]['qty'] * $this->cart[$cartIndex]['price'];
-        } else {
-            $this->cart[] = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'qty' => 1,
-                'subtotal' => $product->price,
-            ];
-        }
-    }
-
-    public function updateQty($index, $action)
-    {
-        if (!isset($this->cart[$index])) return;
-
-        if ($action === 'increase') {
-            $this->cart[$index]['qty']++;
-        } elseif ($action === 'decrease') {
-            if ($this->cart[$index]['qty'] > 1) {
-                $this->cart[$index]['qty']--;
-            } else {
-                $this->removeFromCart($index);
-                return;
-            }
-        }
-        
-        $this->cart[$index]['subtotal'] = $this->cart[$index]['qty'] * $this->cart[$index]['price'];
-    }
-
-    public function removeFromCart($index)
-    {
-        unset($this->cart[$index]);
-        $this->cart = array_values($this->cart);
-    }
-    
-    public function getSubtotalProperty()
-    {
-        return collect($this->cart)->sum('subtotal');
-    }
-    
-    public function getTaxAmountProperty()
-    {
-        return $this->subtotal * $this->taxRate;
-    }
-    
-    public function getTotalProperty()
-    {
-        return $this->subtotal + $this->taxAmount - $this->discount;
-    }
+    }    
 
     public function checkout()
     {
-        if (empty($this->cart)) return;
+        if (empty($this->cart) || empty($this->customerName)) return;
+
+        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
         
-        OrderService::placeOrder($this->cart, ['name' => $this->customerName]);
-        $this->cart = [];
-        $this->customerName = '';
-        session()->flash('message', 'Pesanan berhasil diproses!');
+        $this->currentOrderId = $order->id;
+        $this->showPaymentModal = true;
+    }
+
+    public function finalizeOrder()
+    {
+        if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
+
+        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+        $this->resetCashier();
+        $this->closePaymentModal();
+
+        $this->showReceipt($order->id);
+    }
+
+    public function resetCashier()
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType']);
+    }
+
+    private function findCustomerIdByName($name)
+    {
+        $customer = Customer::where('name', $name)->first();
+        return $customer ? $customer->id : null;
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
+    }
+
+    public function showReceipt($orderId)
+    {
+        return redirect()->route('cashier.receipt', ['orderId' => $orderId]);
     }
 
     public function render()
