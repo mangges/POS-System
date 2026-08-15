@@ -110,7 +110,7 @@ class Cashier extends Component
 
         $this->activeDraft = null;
         $this->reset('cart', 'customerName');
-        return redirect()->route('cashier.index')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
+        return redirect()->route('filament.admin.pages.cashier')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
     }
 
     public function deleteDraft(int $id)

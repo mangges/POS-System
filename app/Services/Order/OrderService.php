@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Services\Cart\CartCalculatorService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Enum\Orders\OrderStatus;
 use App\Enum\Orders\PaymentStatus;
 
@@ -37,12 +38,12 @@ class OrderService
             $order = Order::findOrFail($activeDraft);
             $order->update($data);
         } else {
-            $additionalData = [
-                'order_number' => $this->createOrderNumber(),
-                'user_id' => Auth::id(),
-            ];
-            
-            $order = Order::create(array_merge($data, $additionalData));
+            $order = DB::transaction(function () use ($data) {
+                $data['order_number'] = $this->createOrderNumber();
+                $data['user_id'] = Auth::id();
+
+                return Order::create($data);
+            });
         }
 
         $this->storeOrderItem($order->id, $cartItems, $activeDraft);
@@ -124,7 +125,7 @@ class OrderService
 
     private function createOrderNumber(): string
     {
-        $lastOrder = Order::latest()->first();
+        $lastOrder = Order::latest('id')->lockForUpdate()->first();
         $lastOrderNumber = $lastOrder ? (int) substr($lastOrder->order_number, 3) : 0;
         $newOrderNumber = str_pad($lastOrderNumber + 1, 6, '0', STR_PAD_LEFT);
         return 'ORD' . $newOrderNumber;

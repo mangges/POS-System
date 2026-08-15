@@ -118,7 +118,7 @@
                     Download PDF
                 </button> --}}
 
-                <a href="{{ route('cashier.index') }}" wire:navigate class="btn btn-draft">
+                <a href="{{ route('filament.admin.pages.cashier') }}" wire:navigate class="btn btn-draft">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                     Simpan dan Kembali
                 </a>

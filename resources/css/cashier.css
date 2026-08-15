@@ -72,14 +72,59 @@
     --transition-normal: 0.2s ease;
 }
 
-/* Reset & Base Styles */
-* {
+/* Dark mode — Filament's theme switcher toggles .dark on <html>. Every color
+   here is a var(), so redefining the tokens on .pos-layout is enough for the
+   whole page (including the drafts modal, which also reads these vars) to
+   flip; nothing else needs touching. */
+.dark .pos-layout {
+    --color-bg-body: #0b1220;
+    --color-bg-surface: #111827;
+    --color-bg-subtle: #1a2333;
+    --color-bg-muted: #1f2937;
+
+    --color-text-dark: #f8fafc;
+    --color-text-main: #e2e8f0;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    --color-text-light: #64748b;
+
+    --color-border: #334155;
+    --color-border-hover: #475569;
+
+    --color-danger: #f87171;
+    --color-danger-hover: #ef4444;
+    --color-danger-bg: #3f1d1d;
+    --color-danger-bg-hover: #4c2323;
+    --color-danger-text: #fca5a5;
+
+    --color-success: #4ade80;
+    --color-success-bg: #14291f;
+    --color-success-text: #86efac;
+
+    --color-warning: #fbbf24;
+    --color-warning-bg: #3a2a0f;
+    --color-warning-text: #fcd34d;
+
+    --color-draft-disabled-bg: #3a2f12;
+    --color-draft-disabled-text: #92765a;
+
+    --color-avatar-bg: #1e3a5f;
+    --color-avatar-text: #7dd3fc;
+
+    --color-product-grad-start: #312e81;
+    --color-product-grad-end: #1e1b4b;
+    --color-product-initial: #a5b4fc;
+}
+
+/* Reset & Base Styles — scoped to .pos-layout (not global) so this page's CSS
+   can't leak into surrounding chrome (e.g. Filament's admin layout) when embedded. */
+:where(.pos-layout, .pos-layout *) {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
+.pos-layout {
     font-family: var(--font-family);
     background-color: var(--color-bg-body); /* Modern light grayish-blue */
     color: var(--color-text-main); /* Slate 800 */
@@ -87,13 +132,6 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-button {
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    background: none;
-}
 
 /* POS Layout Wrapper */
 .pos-layout {

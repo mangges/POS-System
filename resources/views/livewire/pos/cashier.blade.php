@@ -120,10 +120,6 @@
             </div>
 
             <div class="cart-summary">
-                <div class="customer-info" style="margin-bottom: 15px;">
-                    <input type="text" wire:model="customerName" placeholder="Nama Customer (Opsional)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                </div>
-                
                 <div class="summary-row">
                     <span>Nama Pelanggan</span>
                     <input 
