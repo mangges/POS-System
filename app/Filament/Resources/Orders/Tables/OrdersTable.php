@@ -13,13 +13,15 @@ class OrdersTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('customer'))
             ->columns([
                 TextColumn::make('order_number')
                     ->searchable(),
                 TextColumn::make('table.id')
                     ->searchable(),
-                TextColumn::make('customer.name')
-                    ->searchable(),
+                TextColumn::make('customer_display_name')
+                    ->label('Customer')
+                    ->searchable(['customer_name']),
                 TextColumn::make('user.name')
                     ->searchable(),
                 TextColumn::make('total_amount')

@@ -60,4 +60,9 @@ class Order extends Model
     {
         return $this->belongsTo(Payment::class);
     }
+
+    public function getCustomerDisplayNameAttribute(): ?string
+    {
+        return $this->customer?->name ?? $this->customer_name;
+    }
 }
