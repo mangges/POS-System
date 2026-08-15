@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\CustomPages\PosCashier;
+use App\Filament\CustomPages\PosReceipt;
 use App\Livewire\Auth\Login;
 use App\Livewire\LandingPage\LandingPage;
 use App\Livewire\Pos\Receipt;
@@ -18,30 +19,27 @@ Route::get('/', fn () => redirect()->route('login'));
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 // ---------------------------------------------------------------------------
-// Cashier (requires authenticated session)
-// ---------------------------------------------------------------------------
-Route::middleware('auth')->prefix('cashier')->name('cashier.')->group(function () {
-    Route::get('/receipt/{orderId}', Receipt::class)->name('receipt');
-});
-
-// ---------------------------------------------------------------------------
-// POS working page — a Filament page (sidebar/topbar chrome from the "admin"
-// panel), but registered here instead of via the panel's own page discovery
-// so its URL is /cashier instead of /admin/cashier. Middleware/name-prefixing
-// mirrors exactly what Filament's own route registration does for panel
-// pages (vendor/filament/filament/routes/web.php), just without the panel's
-// path() prefix group.
+// POS pages — Filament pages (sidebar/topbar chrome from the "admin" panel),
+// but registered here instead of via the panel's own page discovery so their
+// URLs are /cashier and /cashier/receipt/{orderId} instead of living under
+// /admin. Middleware mirrors exactly what Filament's own route registration
+// does for panel pages (vendor/filament/filament/routes/web.php), just
+// without the panel's path() prefix group.
 // ---------------------------------------------------------------------------
 $adminPanel = Filament::getPanel('admin');
 
-Route::name('filament.')->group(function () use ($adminPanel) {
-    Route::name("{$adminPanel->getId()}.")
-        ->middleware($adminPanel->getMiddleware())
-        ->group(function () use ($adminPanel) {
-            Route::middleware($adminPanel->getAuthMiddleware())
-                ->group(fn () => PosCashier::registerRoutes($adminPanel));
-        });
-});
+Route::middleware($adminPanel->getMiddleware())
+    ->group(function () use ($adminPanel) {
+        Route::middleware($adminPanel->getAuthMiddleware())
+            ->group(function () use ($adminPanel) {
+                Route::name('filament.')->group(function () use ($adminPanel) {
+                    Route::name("{$adminPanel->getId()}.")
+                        ->group(fn () => PosCashier::registerRoutes($adminPanel));
+                });
+
+                Route::get('/cashier/receipt/{orderId}', PosReceipt::class)->name('cashier.receipt');
+            });
+    });
 
 // ---------------------------------------------------------------------------
 // Customer Self-Order — two entry points:
