@@ -17,7 +17,7 @@ class OrderService
         private CartCalculatorService $cartCalculatorService
     ) {}
 
-    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null): Order
+    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null, string $paymentMethod = 'cash'): Order
     {
         $cartSubtotal = $this->cartCalculatorService->subtotal($cartItems);
         $cartTax = $this->cartCalculatorService->tax($cartSubtotal);
@@ -50,7 +50,7 @@ class OrderService
 
         $payment = Payment::create([
             'order_id' => $order->id,
-            'payment_method' => 'cash',
+            'payment_method' => $paymentMethod,
             'amount' => 0,
             'status' => PaymentStatus::Pending,
             'transaction_id' => null,
@@ -119,6 +119,24 @@ class OrderService
             'amount' => $paymentMethod === 'cash' ? $cashReceived : 0,
             'status' => PaymentStatus::Success,
         ]);
+
+        return $order;
+    }
+
+    public function acceptOrder(int $orderId): Order
+    {
+        return Order::with('items')->findOrFail($orderId);
+    }
+
+    public function declineOrder(int $orderId): Order
+    {
+        $order = Order::findOrFail($orderId);
+
+        $order->update(['status' => OrderStatus::Cancelled]);
+
+        if ($order->payment) {
+            $order->payment->update(['status' => PaymentStatus::Failed]);
+        }
 
         return $order;
     }

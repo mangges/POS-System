@@ -33,6 +33,7 @@ class Cashier extends Component
     
     public $showPaymentModal = false;
     public $showDraftsModal = false;
+    public $showFromTableModal = false;
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
@@ -61,7 +62,7 @@ class Cashier extends Component
     #[Computed]
     public function draftOrders()
     {
-        return Order::where('status', 'pending')->get();
+        return Order::with('table')->where('status', 'pending')->where('table_id', NULL)->get();
     }
 
     public function loadDraft(int $id): void
@@ -133,6 +134,54 @@ class Cashier extends Component
 
 
         return redirect()->back()->with('message', 'Draft berhasil dihapus!')->with('type', 'success');
+    }
+
+    public function openFromTableModal()
+    {
+        $this->showFromTableModal = true;
+    }
+
+    public function closeFromTableModal()
+    {
+        $this->showFromTableModal = false;
+    }
+
+    #[Computed]
+    public function fromTableOrders()
+    {
+        return Order::with('table')->where('status', 'pending')->whereNot('table_id', NULL)->get();
+    }
+
+    public function acceptTableOrder(int $id): void
+    {
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
+
+        $order = $this->orderService->acceptOrder($id);
+
+        $this->activeDraft = $order->id;
+
+        $this->cart = $order->items->map(function ($item) {
+            $name = Product::findOrFail($item->product_id)->name;
+
+            return [
+                'id' => $item->product_id,
+                'name' => $name,
+                'price' => $item->price,
+                'qty' => $item->quantity,
+            ];
+        })->toArray();
+
+        $this->customerName = $order->customer_name;
+        $this->orderType = $order->order_type;
+        $this->currentOrderId = $order->id;
+        $this->closeFromTableModal();
+    }
+
+    public function declineTableOrder(int $id)
+    {
+        $this->orderService->declineOrder($id);
+
+        return redirect()->back()->with('message', 'Pesanan berhasil ditolak!')->with('type', 'success');
     }
 
     public function updatedSearch()
