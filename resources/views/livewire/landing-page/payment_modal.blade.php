@@ -20,18 +20,24 @@
                 <div class="form-field">
                     <span class="form-label">Metode Pembayaran</span>
                     <div class="payment-method-list">
+                        @if(in_array('cash', $this->activeMethods))
                         <label class="payment-method-option {{ $paymentMethod === 'cash' ? 'active' : '' }}">
                             <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="cash" class="hidden-radio">
                             <span class="payment-method-label">Tunai</span>
                         </label>
+                        @endif
+                        @if(in_array('qris', $this->activeMethods))
                         <label class="payment-method-option {{ $paymentMethod === 'qris' ? 'active' : '' }}">
                             <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="qris" class="hidden-radio">
                             <span class="payment-method-label">QRIS</span>
                         </label>
+                        @endif
+                        @if(in_array('transfer', $this->activeMethods))
                         <label class="payment-method-option {{ $paymentMethod === 'transfer' ? 'active' : '' }}">
                             <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="transfer" class="hidden-radio">
                             <span class="payment-method-label">Debit</span>
                         </label>
+                        @endif
                     </div>
                 </div>
 
@@ -53,10 +59,15 @@
                 <p class="payment-notice">
                     @if ($paymentMethod === 'cash')
                         Kasir kami akan membawakan bills ke meja Anda untuk pembayaran.
+                    @elseif ($this->qrisImage)
+                        Scan QR di bawah ini untuk membayar langsung dari HP Anda.
                     @else
                         Kasir kami akan membawakan mesin EDC ke meja Anda untuk pembayaran.
                     @endif
                 </p>
+                @if ($this->qrisImage)
+                    <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
+                @endif
             </div>
 
             <div class="payment-modal-footer">
@@ -76,6 +87,8 @@
                 <p class="payment-success-message">
                     @if ($paymentMethod === 'cash')
                         Kasir kami akan segera membawakan struk pembayaran ke meja Anda.
+                    @elseif ($paymentMethod === 'qris' && $this->qrisImage)
+                        Silakan selesaikan pembayaran QRIS di layar sebelumnya. Struk akan diantar kasir setelah pembayaran diterima.
                     @else
                         Kasir kami akan segera membawakan mesin EDC ke meja Anda untuk proses pembayaran.
                     @endif
