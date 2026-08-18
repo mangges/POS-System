@@ -143,9 +143,11 @@ class OrderService
 
     private function createOrderNumber(): string
     {
-        $lastOrder = Order::latest('id')->lockForUpdate()->first();
-        $lastOrderNumber = $lastOrder ? (int) substr($lastOrder->order_number, 3) : 0;
-        $newOrderNumber = str_pad($lastOrderNumber + 1, 6, '0', STR_PAD_LEFT);
-        return 'ORD' . $newOrderNumber;
+        $datePrefix = now()->format('dmY');
+        do {
+            $orderNumber = "ORD-{$datePrefix}-" . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        } while (Order::where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
     }
 }
