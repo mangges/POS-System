@@ -228,6 +228,8 @@ class Cashier extends Component
 
     public function finalizeOrder()
     {
+        $this->ensureActivePaymentMethod();
+
         if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
 
         $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);

@@ -27,6 +27,7 @@ class LandingPage extends Component
     public string $paymentMethod = 'cash';
     public bool $orderSubmitted = false;
     public ?string $lastOrderNumber = null;
+    public ?int $lastOrderTotal = null;
 
     protected OrderService $orderService;
 
@@ -71,7 +72,7 @@ class LandingPage extends Component
         $this->showPaymentModal = false;
 
         if ($this->orderSubmitted) {
-            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'currentOrderId']);
+            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId']);
             $this->ensureActivePaymentMethod();
         }
     }
@@ -79,6 +80,8 @@ class LandingPage extends Component
     public function checkout()
     {
         if (empty($this->cart) || empty($this->customerName)) return;
+
+        $this->ensureActivePaymentMethod();
 
         $order = $this->orderService->processOrder(
             $this->cart,
@@ -91,6 +94,7 @@ class LandingPage extends Component
 
         $this->currentOrderId = $order->id;
         $this->lastOrderNumber = $order->order_number;
+        $this->lastOrderTotal = (int) round($order->total_amount);
         $this->orderSubmitted = true;
         $this->reset('cart');
     }

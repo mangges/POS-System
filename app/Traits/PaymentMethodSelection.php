@@ -20,7 +20,12 @@ trait PaymentMethodSelection
     #[Computed]
     public function qrisImage(): ?string
     {
-        if ($this->paymentMethod !== 'qris') {
+        return $this->qrisImageForAmount($this->total);
+    }
+
+    public function qrisImageForAmount(int|float|null $amount): ?string
+    {
+        if ($this->paymentMethod !== 'qris' || $amount === null) {
             return null;
         }
 
@@ -31,7 +36,7 @@ trait PaymentMethodSelection
         }
 
         try {
-            $payload = QrisConverter::toDynamic($setting->qris_static_string, (int) round($this->total));
+            $payload = QrisConverter::toDynamic($setting->qris_static_string, (int) round($amount));
         } catch (InvalidArgumentException) {
             return null;
         }

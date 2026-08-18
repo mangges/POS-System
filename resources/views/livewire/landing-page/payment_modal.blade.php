@@ -76,6 +76,9 @@
                 </button>
             </div>
         @else
+            @php
+                $successQrisImage = $paymentMethod === 'qris' ? $this->qrisImageForAmount($lastOrderTotal) : null;
+            @endphp
             <div class="payment-success">
                 <div class="payment-success-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,12 +90,15 @@
                 <p class="payment-success-message">
                     @if ($paymentMethod === 'cash')
                         Kasir kami akan segera membawakan struk pembayaran ke meja Anda.
-                    @elseif ($paymentMethod === 'qris' && $this->qrisImage)
-                        Silakan selesaikan pembayaran QRIS di layar sebelumnya. Struk akan diantar kasir setelah pembayaran diterima.
+                    @elseif ($paymentMethod === 'qris' && $successQrisImage)
+                        Silakan scan QR di bawah ini untuk menyelesaikan pembayaran. Struk akan diantar kasir setelah pembayaran diterima.
                     @else
                         Kasir kami akan segera membawakan mesin EDC ke meja Anda untuk proses pembayaran.
                     @endif
                 </p>
+                @if ($successQrisImage)
+                    <div class="qris-qr-wrap">{!! $successQrisImage !!}</div>
+                @endif
                 <button type="button" wire:click="closePaymentModal" class="payment-submit-btn">Tutup</button>
             </div>
         @endif
