@@ -3,10 +3,19 @@
         <div class="receipt-scroll-area">
             <div class="thermal-receipt" id="printable-receipt">
                 <div class="receipt-header">
-                    <h2>Pos cafee</h2>
-                    <p>Jl. Raya Tanah lot No. 0, Bali</p>
-                    <p>Telp: 0812-3456-***</p>
-                    <p>www.poscafee.com</p>
+                    @if($this->receiptSettings->logo_path)
+                    <img src="{{ Storage::disk('public')->url($this->receiptSettings->logo_path) }}" alt="Logo" style="max-width: 80px; margin: 0 auto 8px;">
+                    @endif
+                    <h2>{{ $this->receiptSettings->store_name }}</h2>
+                    @if($this->receiptSettings->address)
+                    <p>{{ $this->receiptSettings->address }}</p>
+                    @endif
+                    @if($this->receiptSettings->phone)
+                    <p>Telp: {{ $this->receiptSettings->phone }}</p>
+                    @endif
+                    @if($this->receiptSettings->website)
+                    <p>{{ $this->receiptSettings->website }}</p>
+                    @endif
                     <p>{{ $this->order->created_at->format('d/m/Y') }}</p>
                 </div>
                 
@@ -46,7 +55,7 @@
                         <span>{{ number_format($this->subtotal, 0, ',', '.') }}</span>
                     </div>
                     <div class="receipt-row">
-                        <span>PPN (11%)</span>
+                        <span>PPN ({{ $this->subtotal > 0 ? round($this->order->tax / $this->subtotal * 100) : 0 }}%)</span>
                         <span>{{ number_format($this->order->tax, 0, ',', '.') }}</span>
                     </div>
                     <div class="receipt-row grand-total">
@@ -63,17 +72,24 @@
                     </div>
                 </div>
     
+                @if($this->receiptSettings->show_qr)
                 <div class="receipt-divider"></div>
-    
+
                 <div class="receipt-qr">
                     {!! QrCode::size(150)->generate(route('receipt.show', $this->order->token)) !!}
                     <p>Scan untuk e-receipt</p>
                 </div>
-                
+                @endif
+
+                @if($this->receiptSettings->footer_text)
+                <div class="receipt-divider"></div>
+
                 <div class="receipt-footer">
-                    <p>Terima kasih atas kunjungan Anda!</p>
-                    <p>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan.</p>
+                    @foreach(explode("\n", $this->receiptSettings->footer_text) as $line)
+                    <p>{{ trim($line) }}</p>
+                    @endforeach
                 </div>
+                @endif
             </div>
         </div>
     </div>
