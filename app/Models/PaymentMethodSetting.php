@@ -13,6 +13,7 @@ class PaymentMethodSetting extends Model
         'is_active',
         'qris_mode',
         'qris_static_string',
+        'qris_static_image_path',
     ];
 
     protected $casts = [

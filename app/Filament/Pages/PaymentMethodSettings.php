@@ -7,8 +7,8 @@ use App\Enum\Payments\QrisMode;
 use App\Models\PaymentMethodSetting;
 use App\Services\Qris\QrisConverter;
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -16,6 +16,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Zxing\QrReader;
 
 class PaymentMethodSettings extends Page
 {
@@ -35,7 +38,7 @@ class PaymentMethodSettings extends Page
             'cash_active' => $settings->get(PaymentMethod::Cash->value)?->is_active ?? true,
             'qris_active' => $settings->get(PaymentMethod::Qris->value)?->is_active ?? true,
             'qris_mode' => $settings->get(PaymentMethod::Qris->value)?->qris_mode?->value ?? QrisMode::Edc->value,
-            'qris_static_string' => $settings->get(PaymentMethod::Qris->value)?->qris_static_string,
+            'qris_static_image' => $settings->get(PaymentMethod::Qris->value)?->qris_static_image_path,
             'transfer_active' => $settings->get(PaymentMethod::Transfer->value)?->is_active ?? true,
         ]);
     }
@@ -61,21 +64,32 @@ class PaymentMethodSettings extends Page
                             ->default(QrisMode::Edc->value)
                             ->live()
                             ->visible(fn (Get $get) => $get('qris_active')),
-                        Textarea::make('qris_static_string')
-                            ->label('Static QRIS String')
-                            ->rows(4)
+                        FileUpload::make('qris_static_image')
+                            ->label('Gambar QRIS Statis')
+                            ->image()
+                            ->disk('public')
+                            ->directory('payment-methods/qris')
                             ->required(fn (Get $get) => $get('qris_active') && $get('qris_mode') === QrisMode::Dynamic->value)
                             ->visible(fn (Get $get) => $get('qris_active') && $get('qris_mode') === QrisMode::Dynamic->value)
+                            ->helperText('Upload foto/scan QRIS statis asli dari penyedia QRIS Anda.')
                             ->rule(function () {
                                 return function (string $attribute, $value, \Closure $fail) {
-                                    if (empty($value)) {
+                                    if (! $value instanceof TemporaryUploadedFile) {
+                                        return;
+                                    }
+
+                                    $text = (new QrReader($value->getRealPath()))->text();
+
+                                    if (! is_string($text) || $text === '') {
+                                        $fail('Gambar tidak mengandung QR code yang bisa dibaca.');
+
                                         return;
                                     }
 
                                     try {
-                                        QrisConverter::toDynamic($value, 1);
+                                        QrisConverter::toDynamic($text, 1);
                                     } catch (\InvalidArgumentException $e) {
-                                        $fail('String QRIS tidak valid: '.$e->getMessage());
+                                        $fail('QR terbaca tapi bukan QRIS yang valid: '.$e->getMessage());
                                     }
                                 };
                             }),
@@ -97,13 +111,21 @@ class PaymentMethodSettings extends Page
         );
 
         $qrisMode = $data['qris_mode'] ?? QrisMode::Edc->value;
+        $qrisImagePath = $qrisMode === QrisMode::Dynamic->value ? ($data['qris_static_image'] ?? null) : null;
+        $qrisStaticString = null;
+
+        if ($qrisImagePath) {
+            $text = (new QrReader(Storage::disk('public')->path($qrisImagePath)))->text();
+            $qrisStaticString = is_string($text) ? $text : null;
+        }
 
         PaymentMethodSetting::updateOrCreate(
             ['method' => PaymentMethod::Qris->value],
             [
                 'is_active' => $data['qris_active'],
                 'qris_mode' => $qrisMode,
-                'qris_static_string' => $qrisMode === QrisMode::Dynamic->value ? ($data['qris_static_string'] ?? null) : null,
+                'qris_static_image_path' => $qrisImagePath,
+                'qris_static_string' => $qrisStaticString,
             ],
         );
 
