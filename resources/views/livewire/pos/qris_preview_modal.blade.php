@@ -6,10 +6,15 @@
         </button>
     </div>
 
+    @php
+        $previewImage = $previewQrisAmount !== null ? $this->qrisImageForOrderAmount($previewQrisAmount) : $this->qrisImage;
+        $previewAmount = $previewQrisAmount ?? $this->total;
+    @endphp
+
     <div class="qris-preview-body">
-        @if($this->qrisImage)
-            <div class="qris-preview-image">{!! $this->qrisImage !!}</div>
-            <p class="qris-preview-amount">Rp {{ number_format($this->total, 0, ',', '.') }}</p>
+        @if($previewImage)
+            <div class="qris-preview-image">{!! $previewImage !!}</div>
+            <p class="qris-preview-amount">Rp {{ number_format($previewAmount, 0, ',', '.') }}</p>
             <p class="qris-preview-hint">Scan QR di atas untuk membayar.</p>
         @else
             <p class="qris-preview-hint">QRIS dinamis belum tersedia. Pilih metode QRIS dan pastikan mode Static &rarr; Dynamic aktif di Payment Method Settings.</p>

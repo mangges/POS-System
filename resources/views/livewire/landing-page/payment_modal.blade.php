@@ -82,7 +82,7 @@
             @php
                 $successQrisImage = $paymentMethod === 'qris' ? $this->qrisImageForAmount($lastOrderTotal) : null;
             @endphp
-            <div class="payment-success">
+            <div class="payment-success" x-data="{ showQr: false }">
                 <div class="payment-success-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -93,17 +93,24 @@
                 <p class="payment-success-message">
                     @if ($paymentMethod === 'cash')
                         Kasir kami akan segera membawakan struk pembayaran ke meja Anda.
-                    @elseif ($paymentMethod === 'qris' && $successQrisImage)
-                        Silakan scan QR di bawah ini untuk menyelesaikan pembayaran. Struk akan diantar kasir setelah pembayaran diterima.
+                    @elseif ($paymentMethod === 'qris')
+                        Silakan selesaikan pembayaran QRIS Anda. Kasir akan memverifikasi pembayaran sebelum pesanan diproses.
                     @else
                         Kasir kami akan segera membawakan mesin EDC ke meja Anda untuk proses pembayaran.
                     @endif
                 </p>
                 @if ($successQrisImage)
-                    <div class="qris-qr-wrap">{!! $successQrisImage !!}</div>
-                    <a href="data:image/svg+xml;base64,{{ base64_encode($successQrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
-                        <i class="bi bi-download"></i> Download QRIS
-                    </a>
+                    <button type="button" x-show="!showQr" x-on:click="showQr = true" class="qris-download-btn">
+                        <i class="bi bi-qr-code"></i> Lihat QRIS Lagi
+                    </button>
+                    <template x-if="showQr">
+                        <div>
+                            <div class="qris-qr-wrap">{!! $successQrisImage !!}</div>
+                            <a href="data:image/svg+xml;base64,{{ base64_encode($successQrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
+                                <i class="bi bi-download"></i> Download QRIS
+                            </a>
+                        </div>
+                    </template>
                 @endif
                 <button type="button" wire:click="closePaymentModal" class="payment-submit-btn">Tutup</button>
             </div>

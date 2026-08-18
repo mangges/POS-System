@@ -38,6 +38,7 @@ class Cashier extends Component
     public $showDraftsModal = false;
     public $showFromTableModal = false;
     public $showQrisPreviewModal = false;
+    public ?int $previewQrisAmount = null;
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
@@ -166,6 +167,14 @@ class Cashier extends Component
     public function closeQrisPreviewModal()
     {
         $this->showQrisPreviewModal = false;
+        $this->previewQrisAmount = null;
+    }
+
+    public function openQrisPreviewForOrder(int $id): void
+    {
+        $order = Order::findOrFail($id);
+        $this->previewQrisAmount = (int) round($order->total_amount);
+        $this->showQrisPreviewModal = true;
     }
 
     #[Computed]
@@ -180,7 +189,7 @@ class Cashier extends Component
 
         $paymentMethod = $order->payment->payment_method;
 
-        if ($paymentMethod !== 'cash' && ! ($this->confirmedPayments[$id] ?? false)) {
+        if ($paymentMethod === 'qris' && ! ($this->confirmedPayments[$id] ?? false)) {
             return;
         }
 
@@ -279,6 +288,7 @@ class Cashier extends Component
     {
         $this->showPaymentModal = false;
         $this->showQrisPreviewModal = false;
+        $this->previewQrisAmount = null;
     }
 
     public function showReceipt($orderId)

@@ -20,6 +20,9 @@
                         <span class="draft-total">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
                     </div>
                     @if(($order->payment->payment_method ?? null) == 'qris')
+                        <button type="button" wire:click.stop="openQrisPreviewForOrder({{ $order->id }})" class="btn-preview-qris">
+                            <i class="bi bi-qr-code"></i> Lihat QRIS
+                        </button>
                         <label class="payment-confirm-checkbox-inline">
                             <input type="checkbox" wire:model.live="confirmedPayments.{{ $order->id }}">
                             <span>Konfirmasi QRIS diterima.</span>
@@ -30,7 +33,7 @@
                             <i class="bi bi-x-lg"></i> Decline
                         </button>
                         <button wire:click.stop="acceptTableOrder({{ $order->id }})" class="accept-btn" title="Terima Pesanan"
-                            @if(($order->payment->payment_method ?? null) !== 'cash' && ! ($confirmedPayments[$order->id] ?? false)) disabled @endif>
+                            @if(($order->payment->payment_method ?? null) == 'qris' && ! ($confirmedPayments[$order->id] ?? false)) disabled @endif>
                             <i class="bi bi-check-lg"></i> Accept
                         </button>
                     </div>

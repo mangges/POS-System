@@ -173,11 +173,15 @@
         </div>
 
         <div class="payment-modal-overlay @if(!$showPaymentModal) closed @endif">
-            @include('livewire.pos.payment_modal')
+            @if($showPaymentModal)
+                @include('livewire.pos.payment_modal')
+            @endif
         </div>
 
         <div class="qris-preview-overlay @if(!$showQrisPreviewModal) closed @endif">
-            @include('livewire.pos.qris_preview_modal')
+            @if($showQrisPreviewModal)
+                @include('livewire.pos.qris_preview_modal')
+            @endif
         </div>
     </div>
 </div>

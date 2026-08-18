@@ -11,6 +11,9 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 trait PaymentMethodSelection
 {
+    public ?string $qrisImageCache = null;
+    public ?int $qrisImageCacheAmount = null;
+
     #[Computed]
     public function activeMethods(): array
     {
@@ -29,6 +32,29 @@ trait PaymentMethodSelection
             return null;
         }
 
+        $roundedAmount = (int) round($amount);
+
+        if ($this->qrisImageCache !== null && $this->qrisImageCacheAmount === $roundedAmount) {
+            return $this->qrisImageCache;
+        }
+
+        $this->qrisImageCache = $this->generateQrisImage($roundedAmount);
+        $this->qrisImageCacheAmount = $roundedAmount;
+
+        return $this->qrisImageCache;
+    }
+
+    public function qrisImageForOrderAmount(int|float|null $amount): ?string
+    {
+        if ($amount === null) {
+            return null;
+        }
+
+        return $this->generateQrisImage($amount);
+    }
+
+    private function generateQrisImage(int|float $amount): ?string
+    {
         $setting = PaymentMethodSetting::forMethod('qris');
 
         if (! $setting || $setting->qris_mode !== QrisMode::Dynamic || empty($setting->qris_static_string)) {
