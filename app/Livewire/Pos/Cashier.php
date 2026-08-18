@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
+use App\Traits\PaymentMethodSelection;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,7 @@ class Cashier extends Component
     use CartCalculation {
         addToCart as protected traitAddToCart;
     }
+    use PaymentMethodSelection;
 
     public function boot(OrderService $orderService)
     {
@@ -48,6 +50,7 @@ class Cashier extends Component
     {
         $this->categories = Category::all();
         $this->loadProducts();
+        $this->ensureActivePaymentMethod();
     }
 
     public function addToCart(...$params)
@@ -68,7 +71,8 @@ class Cashier extends Component
     public function loadDraft(int $id): void
     {
         $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
-        
+        $this->ensureActivePaymentMethod();
+
         $order = Order::with('items')->findOrFail($id);
 
         $this->activeDraft = $order->id;
@@ -236,6 +240,7 @@ class Cashier extends Component
     public function resetCashier()
     {
         $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType']);
+        $this->ensureActivePaymentMethod();
     }
 
     private function findCustomerIdByName($name)
