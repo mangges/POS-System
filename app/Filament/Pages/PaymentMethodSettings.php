@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Enum\Payments\PaymentMethod;
 use App\Enum\Payments\QrisMode;
 use App\Models\PaymentMethodSetting;
+use App\Services\Qris\QrisConverter;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
@@ -31,11 +32,11 @@ class PaymentMethodSettings extends Page
         $settings = PaymentMethodSetting::all()->keyBy('method');
 
         $this->form->fill([
-            'cash_active' => $settings[PaymentMethod::Cash->value]?->is_active ?? true,
-            'qris_active' => $settings[PaymentMethod::Qris->value]?->is_active ?? true,
-            'qris_mode' => $settings[PaymentMethod::Qris->value]?->qris_mode?->value ?? QrisMode::Edc->value,
-            'qris_static_string' => $settings[PaymentMethod::Qris->value]?->qris_static_string,
-            'transfer_active' => $settings[PaymentMethod::Transfer->value]?->is_active ?? true,
+            'cash_active' => $settings->get(PaymentMethod::Cash->value)?->is_active ?? true,
+            'qris_active' => $settings->get(PaymentMethod::Qris->value)?->is_active ?? true,
+            'qris_mode' => $settings->get(PaymentMethod::Qris->value)?->qris_mode?->value ?? QrisMode::Edc->value,
+            'qris_static_string' => $settings->get(PaymentMethod::Qris->value)?->qris_static_string,
+            'transfer_active' => $settings->get(PaymentMethod::Transfer->value)?->is_active ?? true,
         ]);
     }
 
@@ -64,7 +65,20 @@ class PaymentMethodSettings extends Page
                             ->label('Static QRIS String')
                             ->rows(4)
                             ->required(fn (Get $get) => $get('qris_active') && $get('qris_mode') === QrisMode::Dynamic->value)
-                            ->visible(fn (Get $get) => $get('qris_active') && $get('qris_mode') === QrisMode::Dynamic->value),
+                            ->visible(fn (Get $get) => $get('qris_active') && $get('qris_mode') === QrisMode::Dynamic->value)
+                            ->rule(function () {
+                                return function (string $attribute, $value, \Closure $fail) {
+                                    if (empty($value)) {
+                                        return;
+                                    }
+
+                                    try {
+                                        QrisConverter::toDynamic($value, 1);
+                                    } catch (\InvalidArgumentException $e) {
+                                        $fail('String QRIS tidak valid: '.$e->getMessage());
+                                    }
+                                };
+                            }),
                     ]),
                 Section::make('Kartu/Debit')
                     ->schema([
@@ -82,12 +96,14 @@ class PaymentMethodSettings extends Page
             ['is_active' => $data['cash_active']],
         );
 
+        $qrisMode = $data['qris_mode'] ?? QrisMode::Edc->value;
+
         PaymentMethodSetting::updateOrCreate(
             ['method' => PaymentMethod::Qris->value],
             [
                 'is_active' => $data['qris_active'],
-                'qris_mode' => $data['qris_mode'],
-                'qris_static_string' => $data['qris_mode'] === QrisMode::Dynamic->value ? $data['qris_static_string'] : null,
+                'qris_mode' => $qrisMode,
+                'qris_static_string' => $qrisMode === QrisMode::Dynamic->value ? ($data['qris_static_string'] ?? null) : null,
             ],
         );
 
