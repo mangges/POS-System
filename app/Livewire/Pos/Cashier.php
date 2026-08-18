@@ -27,6 +27,8 @@ class Cashier extends Component
     protected OrderService $orderService;
     public $customerName = '';
     public string $paymentMethod = 'cash';
+    public bool $paymentConfirmed = false;
+    public array $confirmedPayments = [];
     public ?int $currentOrderId = null;
     public string $orderType = 'dine-in';
 
@@ -54,6 +56,11 @@ class Cashier extends Component
         $this->ensureActivePaymentMethod();
     }
 
+    public function updatedPaymentMethod(): void
+    {
+        $this->paymentConfirmed = false;
+    }
+
     public function addToCart(...$params)
     {
         if ($this->showDraftsModal) {
@@ -71,7 +78,7 @@ class Cashier extends Component
 
     public function loadDraft(int $id): void
     {
-        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'paymentConfirmed', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
         $this->ensureActivePaymentMethod();
 
         $order = Order::with('items')->findOrFail($id);
@@ -173,6 +180,10 @@ class Cashier extends Component
 
         $paymentMethod = $order->payment->payment_method;
 
+        if ($paymentMethod !== 'cash' && ! ($this->confirmedPayments[$id] ?? false)) {
+            return;
+        }
+
         $finalized = $this->orderService->finalizeOrder(
             $order->id,
             $paymentMethod,
@@ -180,6 +191,7 @@ class Cashier extends Component
             $order->order_type
         );
 
+        unset($this->confirmedPayments[$id]);
         $this->closeFromTableModal();
         $this->showReceipt($finalized->id);
     }
@@ -242,6 +254,7 @@ class Cashier extends Component
         $this->ensureActivePaymentMethod();
 
         if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
+        if ($this->paymentMethod !== 'cash' && ! $this->paymentConfirmed) return;
 
         $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
         $this->resetCashier();
@@ -252,7 +265,7 @@ class Cashier extends Component
 
     public function resetCashier()
     {
-        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType']);
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'paymentConfirmed', 'cashReceived', 'currentOrderId', 'orderType']);
         $this->ensureActivePaymentMethod();
     }
 

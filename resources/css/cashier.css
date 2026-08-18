@@ -1006,19 +1006,54 @@
 }
 
 .table-order-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
     cursor: default;
 }
 
+.table-order-item .draft-info {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.table-order-item .draft-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.table-order-item .draft-id {
+    font-size: 15px;
+}
+
+.table-order-item .draft-customer {
+    font-size: 12px;
+}
+
+.table-order-item .draft-total {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text-main);
+    flex-shrink: 0;
+}
+
 .table-order-actions {
-    gap: 8px;
+    gap: 10px;
+    width: 100%;
 }
 
 .table-order-actions button {
+    flex: 1;
     width: auto;
-    height: 32px;
+    height: 42px;
     padding: 0 12px;
     gap: 6px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     border-radius: var(--radius-md);
     white-space: nowrap;
@@ -1044,6 +1079,35 @@
 .table-order-actions .decline-btn:hover {
     background-color: var(--color-danger-hover);
     color: #fff;
+}
+
+.table-order-actions .accept-btn:disabled {
+    background-color: var(--color-bg-muted);
+    border-color: var(--color-border);
+    color: var(--color-text-light);
+    cursor: not-allowed;
+}
+
+.payment-confirm-checkbox-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 10px 12px;
+    background-color: var(--color-warning-bg);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-warning-text);
+    cursor: pointer;
+}
+
+.payment-confirm-checkbox-inline input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
 }
 
 /* --- RESPONSIVE DESIGN --- */

@@ -63,6 +63,11 @@
                     <p>Untuk metode pembayaran selain tunai, silakan selesaikan pembayaran melalui aplikasi terkait.</p>
                 </div>
             @endif
+
+            <label class="payment-confirm-checkbox">
+                <input type="checkbox" wire:model.live="paymentConfirmed">
+                <span>Konfirmasi pembayaran diterima.</span>
+            </label>
         @endif
 
         <div id="cashDenominations" class="{{ $this->paymentMethod !== 'cash' ? 'section-disabled' : '' }}">
@@ -134,6 +139,9 @@
 
             @php
                 $isInsufficient = $this->cashReceived !== null && $this->cashReceived < $this->total;
+                $canFinalize = $this->paymentMethod === 'cash'
+                    ? (! $isInsufficient && $cashReceived !== null)
+                    : $paymentConfirmed;
             @endphp
 
             <div class="@if($isInsufficient) change-box-danger @else change-box-success @endif">
@@ -150,7 +158,7 @@
         </div>
 
         <div class="submit-action-wrapper">
-            <button type="button" wire:click="finalizeOrder" class="btn-submit-payment" @if($isInsufficient || $cashReceived === null) disabled @endif>
+            <button type="button" wire:click="finalizeOrder" class="btn-submit-payment" @if(! $canFinalize) disabled @endif>
                 <i class="fas fa-check-circle"></i>
                 <span>Selesai & Cetak Struk</span>
             </button>
