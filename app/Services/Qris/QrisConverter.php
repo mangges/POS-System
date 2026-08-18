@@ -90,7 +90,13 @@ class QrisConverter
 
         while ($offset < $length) {
             $tag = substr($data, $offset, 2);
-            $valueLength = (int) substr($data, $offset + 2, 2);
+            $lengthField = substr($data, $offset + 2, 2);
+
+            if (strlen($lengthField) < 2 || ! ctype_digit($lengthField)) {
+                throw new InvalidArgumentException('Malformed TLV length field in QRIS string.');
+            }
+
+            $valueLength = (int) $lengthField;
             $value = substr($data, $offset + 4, $valueLength);
 
             $elements[] = ['tag' => $tag, 'value' => $value];

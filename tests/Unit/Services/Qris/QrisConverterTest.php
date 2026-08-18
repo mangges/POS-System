@@ -34,4 +34,20 @@ class QrisConverterTest extends TestCase
 
         QrisConverter::toDynamic($corrupted, 50000);
     }
+
+    public function test_to_dynamic_throws_instead_of_hanging_on_malformed_tlv_length_field(): void
+    {
+        // Real TLV-shaped body ("00" tag, "02" length, "01" value) followed by a
+        // deliberately corrupted length field ("-4" instead of two digits), which
+        // casts to a negative int under naive `(int)` parsing and can stall the
+        // TLV walker's offset advancement forever.
+        $corruptBody = '00'.'02'.'01'.'99'.'-4';
+        $bodyWithCrcTag = $corruptBody.'6304';
+        $crc = QrisConverter::crc16($bodyWithCrcTag);
+        $malformed = $bodyWithCrcTag.$crc;
+
+        $this->expectException(InvalidArgumentException::class);
+
+        QrisConverter::toDynamic($malformed, 50000);
+    }
 }
