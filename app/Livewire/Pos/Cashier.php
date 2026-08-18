@@ -154,27 +154,19 @@ class Cashier extends Component
 
     public function acceptTableOrder(int $id): void
     {
-        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
-
         $order = $this->orderService->acceptOrder($id);
 
-        $this->activeDraft = $order->id;
+        $paymentMethod = $order->payment->payment_method;
 
-        $this->cart = $order->items->map(function ($item) {
-            $name = Product::findOrFail($item->product_id)->name;
+        $finalized = $this->orderService->finalizeOrder(
+            $order->id,
+            $paymentMethod,
+            $paymentMethod === 'cash' ? $order->total_amount : null,
+            $order->order_type
+        );
 
-            return [
-                'id' => $item->product_id,
-                'name' => $name,
-                'price' => $item->price,
-                'qty' => $item->quantity,
-            ];
-        })->toArray();
-
-        $this->customerName = $order->customer_name;
-        $this->orderType = $order->order_type;
-        $this->currentOrderId = $order->id;
         $this->closeFromTableModal();
+        $this->showReceipt($finalized->id);
     }
 
     public function declineTableOrder(int $id)
