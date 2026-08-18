@@ -439,6 +439,26 @@
     height: 180px;
 }
 
+.btn-preview-qris {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 0.5rem;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.5rem;
+    color: #1d4ed8;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.btn-preview-qris:hover { background-color: #dbeafe; }
+
 /* Dark mode — this file predates cashier.css's CSS variables and hardcodes
    its own hex colors, so (unlike the rest of the page) it needs its own
    explicit .dark overrides rather than inheriting from redefined tokens. */
@@ -485,6 +505,8 @@
 .dark .label-gray { color: #94a3b8; }
 .dark .payment-notice { background-color: #16233b; border-color: #2c4a70; }
 .dark .payment-notice p { color: #93c5fd; }
+.dark .btn-preview-qris { background-color: #16233b; border-color: #2c4a70; color: #93c5fd; }
+.dark .btn-preview-qris:hover { background-color: #1e3a5f; }
 .dark .section-disabled .btn-denom,
 .dark .section-disabled .btn-reset-denom {
     background-color: #1f2937 !important;

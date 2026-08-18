@@ -35,6 +35,7 @@ class Cashier extends Component
     public $showPaymentModal = false;
     public $showDraftsModal = false;
     public $showFromTableModal = false;
+    public $showQrisPreviewModal = false;
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
@@ -150,6 +151,16 @@ class Cashier extends Component
         $this->showFromTableModal = false;
     }
 
+    public function openQrisPreviewModal()
+    {
+        $this->showQrisPreviewModal = true;
+    }
+
+    public function closeQrisPreviewModal()
+    {
+        $this->showQrisPreviewModal = false;
+    }
+
     #[Computed]
     public function fromTableOrders()
     {
@@ -254,6 +265,7 @@ class Cashier extends Component
     public function closePaymentModal()
     {
         $this->showPaymentModal = false;
+        $this->showQrisPreviewModal = false;
     }
 
     public function showReceipt($orderId)

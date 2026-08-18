@@ -175,5 +175,9 @@
         <div class="payment-modal-overlay @if(!$showPaymentModal) closed @endif">
             @include('livewire.pos.payment_modal')
         </div>
+
+        <div class="qris-preview-overlay @if(!$showQrisPreviewModal) closed @endif">
+            @include('livewire.pos.qris_preview_modal')
+        </div>
     </div>
 </div>

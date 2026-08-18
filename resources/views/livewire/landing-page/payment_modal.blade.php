@@ -67,6 +67,9 @@
                 </p>
                 @if ($this->qrisImage)
                     <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
+                    <a href="data:image/svg+xml;base64,{{ base64_encode($this->qrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
+                        <i class="bi bi-download"></i> Download QRIS
+                    </a>
                 @endif
             </div>
 
@@ -98,6 +101,9 @@
                 </p>
                 @if ($successQrisImage)
                     <div class="qris-qr-wrap">{!! $successQrisImage !!}</div>
+                    <a href="data:image/svg+xml;base64,{{ base64_encode($successQrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
+                        <i class="bi bi-download"></i> Download QRIS
+                    </a>
                 @endif
                 <button type="button" wire:click="closePaymentModal" class="payment-submit-btn">Tutup</button>
             </div>

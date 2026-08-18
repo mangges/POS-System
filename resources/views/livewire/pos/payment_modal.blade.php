@@ -54,6 +54,9 @@
                     <p>Minta pelanggan scan QR ini untuk membayar Rp {{ number_format($this->total) }}.</p>
                 </div>
                 <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
+                <button type="button" wire:click="openQrisPreviewModal" class="btn-preview-qris">
+                    <i class="bi bi-arrows-fullscreen"></i> Tampilkan QRIS ke Pelanggan
+                </button>
             @else
                 <div class="payment-notice">
                     <i class="bi bi-exclamation-circle"></i>
