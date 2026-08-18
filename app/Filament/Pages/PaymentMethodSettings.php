@@ -30,6 +30,9 @@ class PaymentMethodSettings extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?int $navigationSort = 3;
+    
     protected string $view = 'filament-panels::pages.page';
 
     public ?array $data = [];
