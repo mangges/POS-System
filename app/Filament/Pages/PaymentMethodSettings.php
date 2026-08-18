@@ -7,11 +7,15 @@ use App\Enum\Payments\QrisMode;
 use App\Models\PaymentMethodSetting;
 use App\Services\Qris\QrisConverter;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -26,7 +30,7 @@ class PaymentMethodSettings extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
-    protected string $view = 'filament.pages.payment-method-settings';
+    protected string $view = 'filament-panels::pages.page';
 
     public ?array $data = [];
 
@@ -97,6 +101,23 @@ class PaymentMethodSettings extends Page
                 Section::make('Kartu/Debit')
                     ->schema([
                         Toggle::make('transfer_active')->label('Aktif'),
+                    ]),
+            ]);
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Form::make([EmbeddedSchema::make('form')])
+                    ->id('form')
+                    ->livewireSubmitHandler('save')
+                    ->footer([
+                        Actions::make([
+                            Action::make('save')
+                                ->label('Simpan')
+                                ->submit('save'),
+                        ]),
                     ]),
             ]);
     }
