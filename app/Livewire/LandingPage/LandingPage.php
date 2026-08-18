@@ -9,6 +9,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
+use App\Traits\PaymentMethodSelection;
 
 class LandingPage extends Component
 {
@@ -30,6 +31,7 @@ class LandingPage extends Component
     protected OrderService $orderService;
 
     use CartCalculation;
+    use PaymentMethodSelection;
 
     public function boot(OrderService $orderService)
     {
@@ -39,6 +41,7 @@ class LandingPage extends Component
     public function mount(string $table_token)
     {
         $this->table = Table::where('qr_token', $table_token)->firstOrFail();
+        $this->ensureActivePaymentMethod();
     }
 
     public function setCategory($categoryId)
@@ -69,6 +72,7 @@ class LandingPage extends Component
 
         if ($this->orderSubmitted) {
             $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'currentOrderId']);
+            $this->ensureActivePaymentMethod();
         }
     }
 
