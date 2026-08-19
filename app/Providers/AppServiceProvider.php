@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\RawMaterial;
 use App\Models\StockMovement;
+use App\Observers\OrderObserver;
 use App\Observers\StockMovementObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
@@ -37,5 +39,6 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         StockMovement::observe(StockMovementObserver::class);
+        Order::observe(OrderObserver::class);
     }
 }

@@ -50,6 +50,12 @@ class ProductForm
                     ])
                     ->columns(3)
                     ->defaultItems(1)
+                    ->afterStateHydrated(function (Repeater $component, ?array $state): void {
+                        if (blank($state)) {
+                            $component->state([[]]);
+                        }
+                    })
+                    ->minItems(fn (Get $get) => $get('has_recipe') ? 1 : 0)
                     ->visible(fn (Get $get) => $get('has_recipe'))
                     ->columnSpanFull(),
                 TextInput::make('stock')
