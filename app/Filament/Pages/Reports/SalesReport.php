@@ -7,6 +7,7 @@ use App\Enum\Payments\PaymentMethod;
 use App\Filament\Pages\Reports\Concerns\HasReportPeriod;
 use App\Models\Order;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -76,5 +77,57 @@ class SalesReport extends Page
             })
             ->sortKeys()
             ->values();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('exportCsv')
+                ->label('Export CSV')
+                ->icon(Heroicon::OutlinedTableCells)
+                ->action(fn () => $this->exportCsv()),
+            Action::make('exportPdf')
+                ->label('Export PDF')
+                ->icon(Heroicon::OutlinedDocumentArrowDown)
+                ->action(fn () => $this->exportPdf()),
+        ];
+    }
+
+    protected function exportCsv()
+    {
+        $rows = $this->getRows();
+
+        $output = 'Period,Orders,Total Revenue,Cash,QRIS,Transfer' . "\n";
+
+        foreach ($rows as $row) {
+            $output .= implode(',', [
+                $row['period'],
+                $row['order_count'],
+                $row['total_revenue'],
+                $row['cash_revenue'],
+                $row['qris_revenue'],
+                $row['transfer_revenue'],
+            ]) . "\n";
+        }
+
+        return response()->streamDownload(
+            fn () => print $output,
+            'sales-report-' . now()->format('Ymd-His') . '.csv',
+            ['Content-Type' => 'text/csv'],
+        );
+    }
+
+    protected function exportPdf()
+    {
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.reports.sales-report', [
+            'rows' => $this->getRows(),
+            'periodType' => $this->periodType(),
+        ]);
+
+        return response()->streamDownload(
+            fn () => print $pdf->output(),
+            'sales-report-' . now()->format('Ymd-His') . '.pdf',
+            ['Content-Type' => 'application/pdf'],
+        );
     }
 }

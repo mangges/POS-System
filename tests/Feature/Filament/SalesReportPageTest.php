@@ -59,4 +59,35 @@ class SalesReportPageTest extends TestCase
         $this->assertEquals(30000.0, $today['qris_revenue']);
         $this->assertEquals(0.0, $today['transfer_revenue']);
     }
+
+    public function test_csv_export_contains_header_row_and_data(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->makeOrder(OrderStatus::Completed->value, 'cash', 50000);
+
+        $test = Livewire::test(SalesReport::class)->callAction('exportCsv');
+
+        $test->assertFileDownloaded(contentType: 'text/csv');
+
+        $content = base64_decode(data_get($test->effects, 'download.content'));
+
+        $this->assertStringContainsString('Period,Orders,Total Revenue,Cash,QRIS,Transfer', $content);
+        $this->assertStringContainsString('50000', $content);
+    }
+
+    public function test_pdf_export_returns_a_pdf(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->makeOrder(OrderStatus::Completed->value, 'cash', 50000);
+
+        $test = Livewire::test(SalesReport::class)->callAction('exportPdf');
+
+        $test->assertFileDownloaded(contentType: 'application/pdf');
+
+        $content = base64_decode(data_get($test->effects, 'download.content'));
+
+        $this->assertStringStartsWith('%PDF', $content);
+    }
 }
