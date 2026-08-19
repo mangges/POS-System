@@ -36,7 +36,7 @@ class ProductsTable
                     ->color(fn(string $state): string => match ($state) {
                         'kitchen' => 'info',
                         'bar' => 'success',
-                        default => 'secondary',
+                        default => 'warning',
                     })
                     ->formatStateUsing(fn(string $state): string => ucfirst($state)),
                 ImageColumn::make('image'),
