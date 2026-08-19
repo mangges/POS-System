@@ -27,8 +27,6 @@ class OrderItemsTable
                 TextColumn::make('subtotal')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->badge(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
