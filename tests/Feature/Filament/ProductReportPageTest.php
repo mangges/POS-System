@@ -55,4 +55,45 @@ class ProductReportPageTest extends TestCase
         // Sorted by revenue descending within the period: Chips (30000) before Soda (16000).
         $this->assertSame('Chips', $rows->first()['product_name']);
     }
+
+    public function test_csv_export_contains_header_row_and_data(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
+        $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
+        $completed = $this->makeOrder(OrderStatus::Completed->value);
+        OrderItem::create(['order_id' => $completed->id, 'product_id' => $chips->id, 'quantity' => 3, 'price' => 10000, 'subtotal' => 30000]);
+
+        $test = Livewire::test(ProductReport::class)->callAction('exportCsv');
+
+        $test->assertFileDownloaded(contentType: 'text/csv');
+
+        $content = base64_decode(data_get($test->effects, 'download.content'));
+
+        // RFC 4180 CSV may quote fields with spaces; validate header columns exist
+        $this->assertStringContainsString('Period', $content);
+        $this->assertStringContainsString('Product', $content);
+        $this->assertStringContainsString('Qty Sold', $content);
+        $this->assertStringContainsString('Revenue', $content);
+        $this->assertStringContainsString('Chips', $content);
+    }
+
+    public function test_pdf_export_returns_a_pdf(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
+        $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
+        $completed = $this->makeOrder(OrderStatus::Completed->value);
+        OrderItem::create(['order_id' => $completed->id, 'product_id' => $chips->id, 'quantity' => 3, 'price' => 10000, 'subtotal' => 30000]);
+
+        $test = Livewire::test(ProductReport::class)->callAction('exportPdf');
+
+        $test->assertFileDownloaded(contentType: 'application/pdf');
+
+        $content = base64_decode(data_get($test->effects, 'download.content'));
+
+        $this->assertStringStartsWith('%PDF', $content);
+    }
 }

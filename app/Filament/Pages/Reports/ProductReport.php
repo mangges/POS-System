@@ -6,10 +6,12 @@ use App\Enum\Orders\OrderStatus;
 use App\Filament\Pages\Reports\Concerns\HasReportPeriod;
 use App\Models\OrderItem;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use League\Csv\Writer;
 use UnitEnum;
 
 class ProductReport extends Page
@@ -73,5 +75,56 @@ class ProductReport extends Page
                 ? $b['revenue'] <=> $a['revenue']
                 : $a['period'] <=> $b['period'])
             ->values();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('exportCsv')
+                ->label('Export CSV')
+                ->icon(Heroicon::OutlinedTableCells)
+                ->action(fn () => $this->exportCsv()),
+            Action::make('exportPdf')
+                ->label('Export PDF')
+                ->icon(Heroicon::OutlinedDocumentArrowDown)
+                ->action(fn () => $this->exportPdf()),
+        ];
+    }
+
+    protected function exportCsv()
+    {
+        $rows = $this->getRows();
+
+        $csv = Writer::createFromString('');
+        $csv->insertOne(['Period', 'Product', 'Qty Sold', 'Revenue']);
+
+        foreach ($rows as $row) {
+            $csv->insertOne([
+                $row['period'],
+                $row['product_name'],
+                $row['quantity'],
+                $row['revenue'],
+            ]);
+        }
+
+        return response()->streamDownload(
+            fn () => print $csv->toString(),
+            'product-report-' . now()->format('Ymd-His') . '.csv',
+            ['Content-Type' => 'text/csv'],
+        );
+    }
+
+    protected function exportPdf()
+    {
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.reports.product-report', [
+            'rows' => $this->getRows(),
+            'periodType' => $this->periodType(),
+        ]);
+
+        return response()->streamDownload(
+            fn () => print $pdf->output(),
+            'product-report-' . now()->format('Ymd-His') . '.pdf',
+            ['Content-Type' => 'application/pdf'],
+        );
     }
 }
