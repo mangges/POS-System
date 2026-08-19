@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Reports\Concerns;
 
 use Filament\Forms\Components\Radio;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Carbon;
 use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 
@@ -29,6 +30,7 @@ trait HasReportPeriod
             ->format('Y-m-d', true)
             ->startDate(now()->startOfMonth())
             ->endDate(now())
+            ->prefixIcon(Heroicon::OutlinedCalendar)
             ->live();
     }
 
