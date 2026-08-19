@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -58,6 +59,39 @@ class SalesReportPageTest extends TestCase
         $this->assertEquals(50000.0, $today['cash_revenue']);
         $this->assertEquals(30000.0, $today['qris_revenue']);
         $this->assertEquals(0.0, $today['transfer_revenue']);
+    }
+
+    public function test_monthly_grouping_produces_one_row_per_calendar_month(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $thisMonthOrder = $this->makeOrder(OrderStatus::Completed->value, 'cash', 50000);
+        $thisMonthOrder->forceFill(['created_at' => Carbon::now()])->save();
+
+        $lastMonthOrder = $this->makeOrder(OrderStatus::Completed->value, 'qris', 30000);
+        $lastMonthOrder->forceFill(['created_at' => Carbon::now()->subMonthNoOverflow()])->save();
+
+        $rangeStart = Carbon::now()->subMonthNoOverflow()->startOfMonth()->format('Y-m-d');
+        $rangeEnd = Carbon::now()->format('Y-m-d');
+
+        $rows = Livewire::test(SalesReport::class)
+            ->set('data.period_type', 'monthly')
+            ->set('data.date_range', "{$rangeStart} - {$rangeEnd}")
+            ->instance()
+            ->getRows();
+
+        $this->assertCount(2, $rows);
+
+        $thisMonthKey = Carbon::now()->format('Y-m');
+        $lastMonthKey = Carbon::now()->subMonthNoOverflow()->format('Y-m');
+
+        $thisMonthRow = $rows->firstWhere('period', $thisMonthKey);
+        $lastMonthRow = $rows->firstWhere('period', $lastMonthKey);
+
+        $this->assertNotNull($thisMonthRow);
+        $this->assertNotNull($lastMonthRow);
+        $this->assertEquals(50000.0, $thisMonthRow['total_revenue']);
+        $this->assertEquals(30000.0, $lastMonthRow['total_revenue']);
     }
 
     public function test_csv_export_contains_header_row_and_data(): void

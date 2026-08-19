@@ -46,7 +46,6 @@ class SalesReport extends Page
             ]);
     }
 
-
     /** @return Collection<int, array{period: string, order_count: int, total_revenue: float, cash_revenue: float, qris_revenue: float, transfer_revenue: float}> */
     public function getRows(): Collection
     {

@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -54,6 +55,48 @@ class ProductReportPageTest extends TestCase
 
         // Sorted by revenue descending within the period: Chips (30000) before Soda (16000).
         $this->assertSame('Chips', $rows->first()['product_name']);
+    }
+
+    public function test_monthly_grouping_produces_one_row_per_calendar_month_for_the_same_product(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
+        $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
+
+        $thisMonthOrder = $this->makeOrder(OrderStatus::Completed->value);
+        $thisMonthOrder->forceFill(['created_at' => Carbon::now()])->save();
+        OrderItem::create(['order_id' => $thisMonthOrder->id, 'product_id' => $chips->id, 'quantity' => 3, 'price' => 10000, 'subtotal' => 30000]);
+
+        $lastMonthOrder = $this->makeOrder(OrderStatus::Completed->value);
+        $lastMonthOrder->forceFill(['created_at' => Carbon::now()->subMonthNoOverflow()])->save();
+        OrderItem::create(['order_id' => $lastMonthOrder->id, 'product_id' => $chips->id, 'quantity' => 2, 'price' => 10000, 'subtotal' => 20000]);
+
+        $rangeStart = Carbon::now()->subMonthNoOverflow()->startOfMonth()->format('Y-m-d');
+        $rangeEnd = Carbon::now()->format('Y-m-d');
+
+        $rows = Livewire::test(ProductReport::class)
+            ->set('data.period_type', 'monthly')
+            ->set('data.date_range', "{$rangeStart} - {$rangeEnd}")
+            ->instance()
+            ->getRows();
+
+        $this->assertCount(2, $rows);
+
+        $thisMonthKey = Carbon::now()->format('Y-m');
+        $lastMonthKey = Carbon::now()->subMonthNoOverflow()->format('Y-m');
+
+        $thisMonthRow = $rows->firstWhere('period', $thisMonthKey);
+        $lastMonthRow = $rows->firstWhere('period', $lastMonthKey);
+
+        $this->assertNotNull($thisMonthRow);
+        $this->assertNotNull($lastMonthRow);
+        $this->assertEquals(30000.0, $thisMonthRow['revenue']);
+        $this->assertEquals(20000.0, $lastMonthRow['revenue']);
+
+        // Rows are sorted period-ascending when periods differ.
+        $this->assertSame($lastMonthKey, $rows->first()['period']);
+        $this->assertSame($thisMonthKey, $rows->last()['period']);
     }
 
     public function test_csv_export_contains_header_row_and_data(): void

@@ -42,16 +42,26 @@ trait HasReportPeriod
     {
         $value = $this->data['date_range'] ?? null;
 
+        $default = [now()->startOfMonth()->startOfDay(), now()->endOfDay()];
+
         if (! $value) {
-            return [now()->startOfMonth()->startOfDay(), now()->endOfDay()];
+            return $default;
         }
 
-        [$start, $end] = explode(' - ', $value);
+        $dates = explode(' - ', $value);
 
-        return [
-            Carbon::createFromFormat('Y-m-d', $start)->startOfDay(),
-            Carbon::createFromFormat('Y-m-d', $end)->endOfDay(),
-        ];
+        if (count($dates) !== 2) {
+            return $default;
+        }
+
+        try {
+            return [
+                Carbon::createFromFormat('Y-m-d', trim($dates[0]))->startOfDay(),
+                Carbon::createFromFormat('Y-m-d', trim($dates[1]))->endOfDay(),
+            ];
+        } catch (\Exception $e) {
+            return $default;
+        }
     }
 
     protected function periodKey(Carbon $date): string
