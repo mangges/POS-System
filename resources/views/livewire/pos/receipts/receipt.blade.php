@@ -108,7 +108,7 @@
                 </div>
                 <div class="summary-item">
                     <label>Status</label>
-                    <span style="color: {{ $this->payment->status->color() }}; font-weight: 600;">{{ $this->payment->status->label() ?? '-' }}</span>
+                    <span style="color: {{ match($this->payment->status->getColor()) { 'success' => '#16a34a', 'warning' => '#d97706', 'danger' => '#dc2626', default => '#6b7280' } }}; font-weight: 600;">{{ $this->payment->status->getLabel() ?? '-' }}</span>
                 </div>
                 <div class="summary-item">
                     <label>Pelanggan</label>
