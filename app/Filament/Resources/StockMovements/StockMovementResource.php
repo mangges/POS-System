@@ -2,10 +2,7 @@
 
 namespace App\Filament\Resources\StockMovements;
 
-use App\Filament\Resources\StockMovements\Pages\CreateStockMovement;
-use App\Filament\Resources\StockMovements\Pages\EditStockMovement;
 use App\Filament\Resources\StockMovements\Pages\ListStockMovements;
-use App\Filament\Resources\StockMovements\Schemas\StockMovementForm;
 use App\Filament\Resources\StockMovements\Tables\StockMovementsTable;
 use App\Models\StockMovement;
 use BackedEnum;
@@ -25,7 +22,7 @@ class StockMovementResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return StockMovementForm::configure($schema);
+        return $schema->components([]);
     }
 
     public static function table(Table $table): Table
@@ -44,8 +41,6 @@ class StockMovementResource extends Resource
     {
         return [
             'index' => ListStockMovements::route('/'),
-            'create' => CreateStockMovement::route('/create'),
-            'edit' => EditStockMovement::route('/{record}/edit'),
         ];
     }
 }
