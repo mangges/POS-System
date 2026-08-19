@@ -74,7 +74,7 @@ class Cashier extends Component
     #[Computed]
     public function draftOrders()
     {
-        return Order::with('table')->where('status', 'pending')->where('table_id', NULL)->get();
+        return Order::with(['table', 'items.product'])->where('status', 'pending')->where('table_id', NULL)->get();
     }
 
     public function loadDraft(int $id): void
@@ -180,7 +180,7 @@ class Cashier extends Component
     #[Computed]
     public function fromTableOrders()
     {
-        return Order::with('table')->where('status', 'pending')->whereNot('table_id', NULL)->get();
+        return Order::with(['table', 'items.product'])->where('status', 'pending')->whereNot('table_id', NULL)->get();
     }
 
     public function acceptTableOrder(int $id): void
