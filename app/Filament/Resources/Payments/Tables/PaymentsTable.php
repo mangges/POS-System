@@ -19,7 +19,7 @@ class PaymentsTable
                 TextColumn::make('payment_method')
                     ->badge(),
                 TextColumn::make('amount')
-                    ->numeric()
+                    ->money('Rp.')
                     ->sortable(),
                 TextColumn::make('transaction_id')
                     ->searchable(),

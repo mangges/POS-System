@@ -25,13 +25,13 @@ class OrdersTable
                 TextColumn::make('user.name')
                     ->searchable(),
                 TextColumn::make('total_amount')
-                    ->numeric()
+                    ->money('Rp.')
                     ->sortable(),
                 TextColumn::make('tax')
-                    ->numeric()
+                    ->money('Rp.')
                     ->sortable(),
                 TextColumn::make('discount')
-                    ->numeric()
+                    ->money('Rp.')
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge(),

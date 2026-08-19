@@ -22,10 +22,10 @@ class OrderItemsTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('price')
-                    ->money()
+                    ->money('Rp.')
                     ->sortable(),
                 TextColumn::make('subtotal')
-                    ->numeric()
+                    ->money('Rp.')
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
