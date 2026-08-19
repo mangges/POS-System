@@ -29,6 +29,13 @@
         .report-table tbody tr:hover { background: #f9fafb; }
         .report-table th.report-num, .report-table td.report-num { text-align: right; }
         .report-table .report-empty { text-align: center; padding: 2rem 1rem; color: #9ca3af; white-space: normal; }
+
+        .dark .report-table-card { background: #18181b; border-color: #3f3f46; }
+        .dark .report-table thead { background: #27272a; }
+        .dark .report-table th { color: #a1a1aa; border-bottom-color: #3f3f46; }
+        .dark .report-table td { color: #f4f4f5; border-bottom-color: #27272a; }
+        .dark .report-table tbody tr:hover { background: #27272a; }
+        .dark .report-table .report-empty { color: #71717a; }
     </style>
 
     <div class="mb-4">
