@@ -11,6 +11,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use League\Csv\EscapeFormula;
 use League\Csv\Writer;
 use UnitEnum;
 
@@ -96,6 +97,7 @@ class ProductReport extends Page
         $rows = $this->getRows();
 
         $csv = Writer::createFromString('');
+        $csv->addFormatter(new EscapeFormula());
         $csv->insertOne(['Period', 'Product', 'Qty Sold', 'Revenue']);
 
         foreach ($rows as $row) {

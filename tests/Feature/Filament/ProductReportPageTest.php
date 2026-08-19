@@ -122,6 +122,23 @@ class ProductReportPageTest extends TestCase
         $this->assertStringContainsString('Chips', $content);
     }
 
+    public function test_csv_export_escapes_product_names_that_look_like_formulas(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
+        $product = Product::create(['category_id' => $category->id, 'name' => '=cmd|"/c calc"!A1', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
+        $completed = $this->makeOrder(OrderStatus::Completed->value);
+        OrderItem::create(['order_id' => $completed->id, 'product_id' => $product->id, 'quantity' => 1, 'price' => 10000, 'subtotal' => 10000]);
+
+        $test = Livewire::test(ProductReport::class)->callAction('exportCsv');
+
+        $content = base64_decode(data_get($test->effects, 'download.content'));
+
+        $this->assertStringNotContainsString('"=cmd', $content);
+        $this->assertStringContainsString("'=cmd", $content);
+    }
+
     public function test_pdf_export_returns_a_pdf(): void
     {
         $this->actingAs(User::factory()->create());
