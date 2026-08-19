@@ -16,7 +16,8 @@ class RawMaterialsTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('unit')
+                TextColumn::make('unit.symbol')
+                    ->label('Unit')
                     ->searchable(),
                 TextColumn::make('stock')
                     ->numeric()
