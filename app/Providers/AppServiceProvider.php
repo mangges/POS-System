@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Product;
+use App\Models\RawMaterial;
+use App\Models\StockMovement;
+use App\Observers\StockMovementObserver;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -26,6 +31,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Relation::morphMap([
+            'product' => Product::class,
+            'raw_material' => RawMaterial::class,
+        ]);
+
+        StockMovement::observe(StockMovementObserver::class);
     }
 }
