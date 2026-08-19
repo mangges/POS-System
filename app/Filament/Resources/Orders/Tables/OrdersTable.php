@@ -13,7 +13,7 @@ class OrdersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with('customer'))
+            ->modifyQueryUsing(fn ($query) => $query->with(['customer', 'payment']))
             ->columns([
                 TextColumn::make('order_number')
                     ->searchable(),
@@ -35,7 +35,7 @@ class OrdersTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge(),
-                TextColumn::make('payment_status')
+                TextColumn::make('payment.status')
                     ->badge(),
                 TextColumn::make('order_type')
                     ->badge(),
