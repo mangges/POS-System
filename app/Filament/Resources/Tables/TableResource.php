@@ -20,7 +20,7 @@ class TableResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTableCells;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
