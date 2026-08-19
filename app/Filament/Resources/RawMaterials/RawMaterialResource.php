@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RawMaterials;
 use App\Filament\Resources\RawMaterials\Pages\CreateRawMaterial;
 use App\Filament\Resources\RawMaterials\Pages\EditRawMaterial;
 use App\Filament\Resources\RawMaterials\Pages\ListRawMaterials;
+use App\Filament\Resources\RawMaterials\RelationManagers\StockMovementsRelationManager;
 use App\Filament\Resources\RawMaterials\Schemas\RawMaterialForm;
 use App\Filament\Resources\RawMaterials\Tables\RawMaterialsTable;
 use App\Models\RawMaterial;
@@ -36,7 +37,7 @@ class RawMaterialResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            StockMovementsRelationManager::class,
         ];
     }
 
