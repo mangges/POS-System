@@ -16,22 +16,22 @@
         <thead>
             <tr>
                 <th>Period</th>
+                <th>Payment Method</th>
                 <th>Orders</th>
-                <th>Total Revenue</th>
-                <th>Cash</th>
-                <th>QRIS</th>
-                <th>Transfer</th>
+                <th>Subtotal</th>
+                <th>Tax</th>
+                <th>Total</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($rows as $row)
                 <tr>
                     <td>{{ $row['period'] }}</td>
+                    <td>{{ $row['payment_method'] }}</td>
                     <td>{{ $row['order_count'] }}</td>
-                    <td>{{ number_format($row['total_revenue'], 2) }}</td>
-                    <td>{{ number_format($row['cash_revenue'], 2) }}</td>
-                    <td>{{ number_format($row['qris_revenue'], 2) }}</td>
-                    <td>{{ number_format($row['transfer_revenue'], 2) }}</td>
+                    <td>{{ number_format($row['subtotal'], 2) }}</td>
+                    <td>{{ number_format($row['tax'], 2) }}</td>
+                    <td>{{ number_format($row['total'], 2) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="6">No data for this period.</td></tr>

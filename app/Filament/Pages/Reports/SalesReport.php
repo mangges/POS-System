@@ -12,6 +12,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use League\Csv\EscapeFormula;
 use League\Csv\Writer;
 use UnitEnum;
 
@@ -25,7 +26,7 @@ class SalesReport extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Reports';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     protected string $view = 'filament.pages.reports.sales-report';
 
@@ -46,7 +47,7 @@ class SalesReport extends Page
             ]);
     }
 
-    /** @return Collection<int, array{period: string, order_count: int, total_revenue: float, cash_revenue: float, qris_revenue: float, transfer_revenue: float}> */
+    /** @return Collection<int, array{period: string, payment_method: string, order_count: int, subtotal: float, tax: float, total: float}> */
     public function getRows(): Collection
     {
         [$start, $end] = $this->dateRange();
@@ -58,24 +59,24 @@ class SalesReport extends Page
             ->get();
 
         return $orders
-            ->groupBy(fn (Order $order) => $this->periodKey($order->created_at))
-            ->map(function (Collection $ordersInPeriod, string $period) {
+            ->groupBy(fn (Order $order) => $this->periodKey($order->created_at) . '|' . ($order->payment?->payment_method ?? 'unknown'))
+            ->map(function (Collection $ordersInGroup) {
+                $first = $ordersInGroup->first();
+                $paymentMethod = PaymentMethod::tryFrom($first->payment?->payment_method ?? '');
+
                 return [
-                    'period' => $period,
-                    'order_count' => $ordersInPeriod->count(),
-                    'total_revenue' => (float) $ordersInPeriod->sum('total_amount'),
-                    'cash_revenue' => (float) $ordersInPeriod
-                        ->filter(fn (Order $o) => $o->payment?->payment_method === PaymentMethod::Cash->value)
-                        ->sum('total_amount'),
-                    'qris_revenue' => (float) $ordersInPeriod
-                        ->filter(fn (Order $o) => $o->payment?->payment_method === PaymentMethod::Qris->value)
-                        ->sum('total_amount'),
-                    'transfer_revenue' => (float) $ordersInPeriod
-                        ->filter(fn (Order $o) => $o->payment?->payment_method === PaymentMethod::Transfer->value)
-                        ->sum('total_amount'),
+                    'period' => $this->periodKey($first->created_at),
+                    'payment_method' => $paymentMethod?->label() ?? 'Unknown',
+                    'order_count' => $ordersInGroup->count(),
+                    'subtotal' => (float) $ordersInGroup->sum(fn (Order $o) => $o->total_amount - $o->tax),
+                    'tax' => (float) $ordersInGroup->sum('tax'),
+                    'total' => (float) $ordersInGroup->sum('total_amount'),
                 ];
             })
-            ->sortKeys()
+            ->values()
+            ->sort(fn (array $a, array $b) => $a['period'] === $b['period']
+                ? $a['payment_method'] <=> $b['payment_method']
+                : $a['period'] <=> $b['period'])
             ->values();
     }
 
@@ -98,16 +99,17 @@ class SalesReport extends Page
         $rows = $this->getRows();
 
         $csv = Writer::createFromString('');
-        $csv->insertOne(['Period', 'Orders', 'Total Revenue', 'Cash', 'QRIS', 'Transfer']);
+        $csv->addFormatter(new EscapeFormula());
+        $csv->insertOne(['Period', 'Payment Method', 'Orders', 'Subtotal', 'Tax', 'Total']);
 
         foreach ($rows as $row) {
             $csv->insertOne([
                 $row['period'],
+                $row['payment_method'],
                 $row['order_count'],
-                $row['total_revenue'],
-                $row['cash_revenue'],
-                $row['qris_revenue'],
-                $row['transfer_revenue'],
+                $row['subtotal'],
+                $row['tax'],
+                $row['total'],
             ]);
         }
 
