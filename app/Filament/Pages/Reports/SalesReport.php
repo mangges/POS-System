@@ -12,6 +12,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use League\Csv\Writer;
 use UnitEnum;
 
 class SalesReport extends Page
@@ -97,21 +98,22 @@ class SalesReport extends Page
     {
         $rows = $this->getRows();
 
-        $output = 'Period,Orders,Total Revenue,Cash,QRIS,Transfer' . "\n";
+        $csv = Writer::createFromString('');
+        $csv->insertOne(['Period', 'Orders', 'Total Revenue', 'Cash', 'QRIS', 'Transfer']);
 
         foreach ($rows as $row) {
-            $output .= implode(',', [
+            $csv->insertOne([
                 $row['period'],
                 $row['order_count'],
                 $row['total_revenue'],
                 $row['cash_revenue'],
                 $row['qris_revenue'],
                 $row['transfer_revenue'],
-            ]) . "\n";
+            ]);
         }
 
         return response()->streamDownload(
-            fn () => print $output,
+            fn () => print $csv->toString(),
             'sales-report-' . now()->format('Ymd-His') . '.csv',
             ['Content-Type' => 'text/csv'],
         );
