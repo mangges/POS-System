@@ -220,7 +220,8 @@
     text-align: center;
 }
 
-.receipt-qr img {
+.receipt-qr img,
+.receipt-qr svg {
     width: 100px;
     height: 100px;
     display: block;
