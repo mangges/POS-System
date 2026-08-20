@@ -1,28 +1,13 @@
-<div class="landing-page" x-data="{ cartOpen: false, scrolled: false }"
-    x-effect="document.body.style.overflow = (cartOpen || {{ $selectedProduct || $showPaymentModal ? 'true' : 'false' }}) ? 'hidden' : ''"
-    @scroll.window="scrolled = (window.pageYOffset > 40)">
+<div class="landing-page" x-data="{ cartOpen: false }"
+    x-effect="document.body.style.overflow = (cartOpen || {{ $selectedProduct || $showPaymentModal ? 'true' : 'false' }}) ? 'hidden' : ''">
     @vite('resources/css/landing-page.css')
 
     <!-- Navbar -->
-    <nav :class="`navbar ${scrolled ? 'scrolled' : ''}`">
-        <div class="nav-left">
-            <a href="#" class="brand-logo">
-                <span class="brand-mark">P</span>
-                <span class="brand-text">POS System</span>
-            </a>
-            <div class="table-number">
-                <span>{{ $table->name }}</span>
-            </div>
+    <nav class="navbar">
+        <div class="table-number">
+            <span>{{ $table->name }}</span>
         </div>
-        <button @click="cartOpen = true" class="cart-toggle-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            @if (count($cart) > 0)
-                <span class="cart-badge">{{ count($cart) }}</span>
-            @endif
-        </button>
+        <x-notification-bell />
     </nav>
 
     <div class="main-container">
@@ -310,6 +295,17 @@
         </div>
     </footer>
 
+    <!-- Bottom Cart Bar -->
+    @if (count($cart) > 0)
+        <div class="bottom-cart-bar">
+            <div class="bottom-cart-info">
+                <span class="bottom-cart-count">{{ count($cart) }} item</span>
+                <span class="bottom-cart-total">Rp {{ number_format($this->total, 0, ',', '.') }}</span>
+            </div>
+            <button type="button" class="bottom-cart-btn" @click="cartOpen = true">Lihat Keranjang</button>
+        </div>
+    @endif
+
     <!-- Cart Slide-over Menu -->
     <div x-show="cartOpen" class="cart-overlay" style="display: none;">
         <!-- Backdrop -->
@@ -493,4 +489,12 @@
 </div>
 @push('scripts')
     @vite('resources/js/landing-page.js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Echo.channel('table.{{ $table->qr_token }}')
+                .listen('.OrderStatusUpdated', (e) => {
+                    Livewire.dispatch('notify', { message: e.message, type: e.type });
+                });
+        });
+    </script>
 @endpush

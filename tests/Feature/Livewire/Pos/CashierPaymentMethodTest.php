@@ -209,6 +209,21 @@ class CashierPaymentMethodTest extends TestCase
             ->set("confirmedPayments.{$order->id}", true)
             ->call('acceptTableOrder', $order->id);
 
+        $this->assertSame(OrderStatus::Processing, $order->fresh()->status);
+    }
+
+    public function test_finalize_table_order_completes_a_ready_order(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $order = $this->createPendingQrisTableOrder();
+        $order->update(['status' => OrderStatus::Ready]);
+
+        Livewire::test(Cashier::class)
+            ->call('finalizeTableOrder', $order->id)
+            ->assertSet('showPaymentModal', true)
+            ->call('finalizeOrder');
+
         $this->assertSame(OrderStatus::Completed, $order->fresh()->status);
         $this->assertSame(PaymentStatus::Success, $order->fresh()->payment->status);
     }

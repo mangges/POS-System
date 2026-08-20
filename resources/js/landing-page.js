@@ -1,5 +1,3 @@
-const cartIcon = document.querySelector(".cart-toggle-btn");
-
 document.addEventListener("livewire:init", () => {
     Livewire.on("trigger-cart-animation", (event) => {
         const productId = event.productId;
@@ -13,7 +11,8 @@ document.addEventListener("livewire:init", () => {
 });
 
 function addTocartAnimation(productCard, productId) {
-    const productImg = 
+    const cartIcon = document.querySelector(".bottom-cart-btn");
+    const productImg =
     productCard.querySelector(".product-img-wrapper img") ||
     productCard.querySelector(".product-placeholder");
     if (!productImg || !cartIcon) {
@@ -24,10 +23,11 @@ function addTocartAnimation(productCard, productId) {
     const imgRect = productImg.getBoundingClientRect();
     const cartRect = cartIcon.getBoundingClientRect();
 
-    doFlyer(productImg, imgRect, cartRect, null, productCard, productId);
+    doFlyer(productImg, imgRect, cartRect, cartIcon, null, productCard, productId);
 }
 
 function modalAddToCartAnimation(modal, productId) {
+    const cartIcon = document.querySelector(".bottom-cart-btn");
     const productImg =
         modal.querySelector(".product-modal-img") ||
         modal.querySelector(".product-placeholder");
@@ -40,10 +40,10 @@ function modalAddToCartAnimation(modal, productId) {
     const imgRect = productImg.getBoundingClientRect();
     const cartRect = cartIcon.getBoundingClientRect();
 
-    doFlyer(productImg, imgRect, cartRect, modal, null, productId);
+    doFlyer(productImg, imgRect, cartRect, cartIcon, modal, null, productId);
 }
 
-function doFlyer(productImg, imgRect, cartRect, modal=null, productCard=null, productId) {
+function doFlyer(productImg, imgRect, cartRect, cartIcon, modal=null, productCard=null, productId) {
     //flying object
     if (productImg.src) {
         var flyer = document.createElement("img");

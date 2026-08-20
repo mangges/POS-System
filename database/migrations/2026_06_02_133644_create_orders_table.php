@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('total_amount', 15, 2);
             $table->decimal('tax', 15, 2)->default(0);
             $table->decimal('discount', 15, 2)->default(0);
-            $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'processing', 'ready', 'completed', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['unpaid', 'paid', 'failed'])->default('unpaid');
             $table->enum('order_type', ['dine-in', 'takeaway'])->default('dine-in');
             $table->timestamps();

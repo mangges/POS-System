@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/css/receipt.css',
                 'resources/css/landing-page.css',
                 'resources/js/app.js',
+                'resources/js/echo.js',
                 'resources/js/landing-page.js'
             ],
             refresh: true,

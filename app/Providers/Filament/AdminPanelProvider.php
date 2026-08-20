@@ -66,6 +66,8 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling(null)
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): HtmlString => new HtmlString(<<<'HTML'
@@ -73,6 +75,10 @@ class AdminPanelProvider extends PanelProvider
                         .fi-sidebar-nav { padding-inline: calc(var(--spacing) * 3); }
                     </style>
                     HTML),
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('filament.echo-script')->render(),
             );
     }
 }

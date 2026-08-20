@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Enum\Orders\OrderStatus;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
@@ -185,24 +186,16 @@ class Cashier extends Component
 
     public function acceptTableOrder(int $id): void
     {
-        $order = $this->orderService->acceptOrder($id);
-
+        $order = Order::with('payment')->findOrFail($id);
         $paymentMethod = $order->payment->payment_method;
 
         if ($paymentMethod === 'qris' && ! ($this->confirmedPayments[$id] ?? false)) {
             return;
         }
 
-        $finalized = $this->orderService->finalizeOrder(
-            $order->id,
-            $paymentMethod,
-            $paymentMethod === 'cash' ? $order->total_amount : null,
-            $order->order_type
-        );
+        $this->orderService->acceptOrder($id);
 
         unset($this->confirmedPayments[$id]);
-        $this->closeFromTableModal();
-        $this->showReceipt($finalized->id);
     }
 
     public function declineTableOrder(int $id)
@@ -210,6 +203,33 @@ class Cashier extends Component
         $this->orderService->declineOrder($id);
 
         return redirect()->back()->with('message', 'Pesanan berhasil ditolak!')->with('type', 'success');
+    }
+
+    #[Computed]
+    public function readyTableOrders()
+    {
+        return Order::with(['table', 'payment', 'items.product'])
+            ->where('status', OrderStatus::Ready)
+            ->whereNot('table_id', null)
+            ->get();
+    }
+
+    public function finalizeTableOrder(int $id): void
+    {
+        $order = Order::with(['payment', 'items.product'])->findOrFail($id);
+
+        $this->cart = $order->items->map(fn ($item) => [
+            'id' => $item->product_id,
+            'name' => $item->product->name ?? 'Produk dihapus',
+            'price' => $item->price,
+            'qty' => $item->quantity,
+        ])->toArray();
+
+        $this->currentOrderId = $order->id;
+        $this->paymentMethod = $order->payment->payment_method;
+        $this->paymentConfirmed = $this->paymentMethod !== 'cash';
+        $this->orderType = $order->order_type;
+        $this->showPaymentModal = true;
     }
 
     public function updatedSearch()

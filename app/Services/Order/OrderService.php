@@ -23,22 +23,25 @@ class OrderService
         $cartTax = $this->cartCalculatorService->tax($cartSubtotal);
         $totalAmount = $this->cartCalculatorService->total($cartSubtotal, $cartTax);
         $data = [
-            'table_id' => $tableId,
-            'customer_id' => null,
             'customer_name' => $customerName,
             'total_amount' => $totalAmount,
             'tax' => $cartTax,
             'discount' => 0,
-            'status' => OrderStatus::Pending,
-            'payment_id' => null,
             'order_type' => $orderType,
         ];
-        
+
         if ($activeDraft) {
+            // Only cart/money fields change here — table_id and status are
+            // left untouched so an already-accepted table order (Processing)
+            // doesn't get silently detached from its table or reset to Pending.
             $order = Order::findOrFail($activeDraft);
             $order->update($data);
         } else {
-            $order = DB::transaction(function () use ($data) {
+            $order = DB::transaction(function () use ($data, $tableId) {
+                $data['table_id'] = $tableId;
+                $data['customer_id'] = null;
+                $data['status'] = OrderStatus::Pending;
+                $data['payment_id'] = null;
                 $data['order_number'] = $this->createOrderNumber();
                 $data['user_id'] = Auth::id();
 
@@ -125,7 +128,20 @@ class OrderService
 
     public function acceptOrder(int $orderId): Order
     {
-        return Order::with('items')->findOrFail($orderId);
+        $order = Order::with('items')->findOrFail($orderId);
+
+        $order->update(['status' => OrderStatus::Processing]);
+
+        return $order;
+    }
+
+    public function markReady(int $orderId): Order
+    {
+        $order = Order::findOrFail($orderId);
+
+        $order->update(['status' => OrderStatus::Ready]);
+
+        return $order;
     }
 
     public function declineOrder(int $orderId): Order

@@ -11,11 +11,12 @@
         "filament/filament": "^5.6",
         "khanamiryan/qrcode-detector-decoder": "^2.0",
         "laravel/framework": "^13.8",
+        "laravel/reverb": "^1.0",
         "laravel/tinker": "^3.0",
         "league/csv": "^9.28",
         "livewire/livewire": "^4.3",
         "malzariey/filament-daterangepicker-filter": "^5.0",
-        "pusher/pusher-php-server": "^2.1",
+        "pusher/pusher-php-server": "^7.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {
