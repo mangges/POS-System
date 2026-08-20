@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use App\Filament\Widgets\DashboardWidget;
 use App\Filament\Widgets\DashboardOrderChart;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -54,6 +55,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling(null)
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('filament.echo-script')->render(),
+            );
     }
 }
