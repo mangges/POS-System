@@ -9,6 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use App\Enum\Orders\OrderStatus;
+use App\Models\Order;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
@@ -80,14 +81,18 @@ class LandingPage extends Component
     }
 
     #[On('order-status-updated')]
-    public function handleOrderStatusUpdated($orderId, $status, $token = null)
+    public function handleOrderStatusUpdated($orderId, $status)
     {
         if (!$this->orderSubmitted || (int) $orderId !== $this->currentOrderId) {
             return;
         }
 
-        if ($status === OrderStatus::Completed->value && $token) {
-            return $this->redirect(route('receipt.show', ['token' => $token]));
+        if ($status === OrderStatus::Completed->value) {
+            $token = Order::find($orderId)?->token;
+
+            if ($token) {
+                return $this->redirect(route('receipt.show', ['token' => $token]));
+            }
         }
 
         if ($status === OrderStatus::Cancelled->value) {
