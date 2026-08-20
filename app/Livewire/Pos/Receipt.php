@@ -17,17 +17,23 @@ use App\Models\ReceiptSetting;
 #[Layout('components.layouts.receipt')]
 class Receipt extends Component
 {
+    public ?string $token = null;
     public ?int $orderId = null;
 
-    public function mount($orderId)
+    public function mount($token = null, $orderId = null)
     {
+        $this->token = $token;
         $this->orderId = $orderId;
     }
 
     #[Computed]
     public function order()
     {
-        return Order::with(['items.product', 'payment'])->findOrFail($this->orderId);
+        $query = Order::with(['items.product', 'payment']);
+
+        return $this->orderId
+            ? $query->findOrFail($this->orderId)
+            : $query->where('token', $this->token)->firstOrFail();
     }
 
     #[Computed]
