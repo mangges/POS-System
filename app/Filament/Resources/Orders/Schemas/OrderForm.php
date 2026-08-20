@@ -33,11 +33,12 @@ class OrderForm
                     ->default(0.0),
                 Select::make('status')
                     ->options([
-            'pending' => 'Pending',
-            'processing' => 'Processing',
-            'completed' => 'Completed',
-            'cancelled' => 'Cancelled',
-        ])
+                        'pending' => 'Pending',
+                        'processing' => 'Diproses',
+                        'ready' => 'Siap Diantar',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                    ])
                     ->default('pending')
                     ->required(),
                 Select::make('payment_status')
