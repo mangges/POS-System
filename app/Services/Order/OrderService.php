@@ -119,7 +119,7 @@ class OrderService
 
         $payment->update([
             'payment_method' => $paymentMethod,
-            'amount' => $paymentMethod === 'cash' ? $cashReceived : 0,
+            'amount' => $paymentMethod === 'cash' ? $cashReceived : $order->total_amount,
             'status' => PaymentStatus::Success,
         ]);
 
