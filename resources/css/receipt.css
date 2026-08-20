@@ -119,6 +119,28 @@
     margin-top: 4rem;
 }
 
+.receipt-container--solo {
+    grid-template-columns: 1fr;
+    justify-items: center;
+}
+
+.receipt-container--solo .receipt-preview-wrapper {
+    width: 380px;
+    max-width: 100%;
+}
+
+.receipt-solo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.receipt-exit-btn {
+    width: 300px;
+    max-width: 100%;
+}
+
 /* --- Bagian Kiri: Thermal Receipt Preview --- */
 .receipt-preview-wrapper {
     background: var(--color-bg-surface);
@@ -167,19 +189,6 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     border: 1px solid #e5e5e5;
     position: relative;
-}
-
-/* Efek kertas sobek di bagian bawah */
-.thermal-receipt::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background-size: 16px 16px;
-    background-image: radial-gradient(circle at 8px 0, transparent 8px, #fff 9px);
-    filter: drop-shadow(0 4px 2px rgba(0,0,0,0.02));
 }
 
 .receipt-header {

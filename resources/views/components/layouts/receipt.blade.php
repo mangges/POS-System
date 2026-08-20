@@ -24,6 +24,15 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        main {
+            display: flex;
+            justify-content: center;
+        }
+
+        main > .receipt-solo {
+            margin: 4rem auto;
+        }
+
         .back-to-pos {
             position: absolute;
             top: 1.5rem;
@@ -91,12 +100,14 @@
 <body>
     <x-notify />
 
-    <a href="{{ route('filament.admin.pages.cashier') }}" class="back-to-pos" wire:navigate>
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        Kembali ke Kasir
-    </a>
+    @if (request()->routeIs('cashier.receipt'))
+        <a href="{{ route('filament.admin.pages.cashier') }}" class="back-to-pos" wire:navigate>
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Kembali ke Kasir
+        </a>
+    @endif
 
     <main>
         {{ $slot }}

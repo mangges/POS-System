@@ -29,7 +29,7 @@ class Receipt extends Component
     #[Computed]
     public function order()
     {
-        $query = Order::with(['items.product', 'payment']);
+        $query = Order::with(['items.product', 'payment', 'table']);
 
         return $this->orderId
             ? $query->findOrFail($this->orderId)
