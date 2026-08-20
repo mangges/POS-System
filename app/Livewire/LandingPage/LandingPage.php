@@ -5,8 +5,10 @@ namespace App\Livewire\LandingPage;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Table;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Enum\Orders\OrderStatus;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
@@ -74,6 +76,22 @@ class LandingPage extends Component
         if ($this->orderSubmitted) {
             $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId']);
             $this->ensureActivePaymentMethod();
+        }
+    }
+
+    #[On('order-status-updated')]
+    public function handleOrderStatusUpdated($orderId, $status, $token = null)
+    {
+        if (!$this->orderSubmitted || (int) $orderId !== $this->currentOrderId) {
+            return;
+        }
+
+        if ($status === OrderStatus::Completed->value && $token) {
+            return $this->redirect(route('receipt.show', ['token' => $token]));
+        }
+
+        if ($status === OrderStatus::Cancelled->value) {
+            $this->closePaymentModal();
         }
     }
 

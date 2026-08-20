@@ -495,6 +495,7 @@
                 .stopListening('.OrderStatusUpdated')
                 .listen('.OrderStatusUpdated', (e) => {
                     Livewire.dispatch('notify', { message: e.message, type: e.type });
+                    Livewire.dispatch('order-status-updated', { orderId: e.order_id, status: e.status, token: e.token });
                 });
         });
     </script>

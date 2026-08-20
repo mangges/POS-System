@@ -48,6 +48,9 @@ class OrderStatusUpdated implements ShouldBroadcast
         return [
             'message' => $this->message,
             'type' => $this->type,
+            'order_id' => $this->order->id,
+            'status' => $this->order->status->value,
+            'token' => $this->order->token,
         ];
     }
 }
