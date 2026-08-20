@@ -7,6 +7,7 @@
         <div class="table-number">
             <span>{{ $table->name }}</span>
         </div>
+        <x-notification-bell />
     </nav>
 
     <div class="main-container">
@@ -488,4 +489,12 @@
 </div>
 @push('scripts')
     @vite('resources/js/landing-page.js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Echo.channel('table.{{ $table->qr_token }}')
+                .listen('.OrderStatusUpdated', (e) => {
+                    Livewire.dispatch('notify', { message: e.message, type: e.type });
+                });
+        });
+    </script>
 @endpush
