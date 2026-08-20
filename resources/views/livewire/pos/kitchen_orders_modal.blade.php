@@ -29,7 +29,7 @@
     </div>
 
     <div class="drafts-modal-header">
-        <h3>Siap, Perlu Dibayar</h3>
+        <h3>Selesaikan Pesanan</h3>
     </div>
     <div class="drafts-list">
         @if(count($this->readyTableOrders) === 0)
