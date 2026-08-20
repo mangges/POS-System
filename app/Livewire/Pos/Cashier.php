@@ -38,6 +38,7 @@ class Cashier extends Component
     public $showPaymentModal = false;
     public $showDraftsModal = false;
     public $showFromTableModal = false;
+    public $showKitchenOrdersModal = false;
     public $showQrisPreviewModal = false;
     public ?int $previewQrisAmount = null;
 
@@ -160,6 +161,16 @@ class Cashier extends Component
         $this->showFromTableModal = false;
     }
 
+    public function openKitchenOrdersModal()
+    {
+        $this->showKitchenOrdersModal = true;
+    }
+
+    public function closeKitchenOrdersModal()
+    {
+        $this->showKitchenOrdersModal = false;
+    }
+
     public function openQrisPreviewModal()
     {
         $this->showQrisPreviewModal = true;
@@ -203,6 +214,20 @@ class Cashier extends Component
         $this->orderService->declineOrder($id);
 
         return redirect()->back()->with('message', 'Pesanan berhasil ditolak!')->with('type', 'success');
+    }
+
+    #[Computed]
+    public function processingTableOrders()
+    {
+        return Order::with(['table', 'items.product'])
+            ->where('status', OrderStatus::Processing)
+            ->whereNot('table_id', null)
+            ->get();
+    }
+
+    public function markOrderReady(int $id): void
+    {
+        $this->orderService->markReady($id);
     }
 
     #[Computed]

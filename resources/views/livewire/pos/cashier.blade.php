@@ -96,6 +96,13 @@
                             <span class="header-button-badge">{{ count($this->draftOrders) }}</span>
                         @endif
                     </button>
+                    <button wire:click="openKitchenOrdersModal" class="cashier-header-button kitchen-orders-button">
+                        <i class="bi bi-fire"></i>
+                        @php $kitchenCount = count($this->processingTableOrders) + count($this->readyTableOrders); @endphp
+                        @if($kitchenCount > 0)
+                            <span class="header-button-badge">{{ $kitchenCount }}</span>
+                        @endif
+                    </button>
                 </div>
             </div>
             
@@ -169,6 +176,10 @@
 
             <div class="drafts-modal-overlay @if(!$showFromTableModal) closed @endif">
                 @include('livewire.pos.from_table_modal')
+            </div>
+
+            <div class="drafts-modal-overlay @if(!$showKitchenOrdersModal) closed @endif">
+                @include('livewire.pos.kitchen_orders_modal')
             </div>
         </div>
 
