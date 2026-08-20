@@ -3,6 +3,7 @@
 namespace App\Livewire\LandingPage;
 
 use App\Models\Category;
+use App\Models\GuestSession;
 use App\Models\Product;
 use App\Models\Table;
 use Livewire\Attributes\Computed;
@@ -19,6 +20,8 @@ class LandingPage extends Component
 {
     #[Url]
     public $table;
+
+    public ?int $guestSessionId = null;
 
     public $search = '';
     public $selectedCategory = null;
@@ -45,9 +48,16 @@ class LandingPage extends Component
         $this->orderService = $orderService;
     }
 
-    public function mount(string $table_token)
+    public function mount(string $session_token)
     {
-        $this->table = Table::where('qr_token', $table_token)->firstOrFail();
+        $guestSession = GuestSession::where('token', $session_token)->firstOrFail();
+
+        if ($guestSession->isExpired()) {
+            abort(410, 'Session expired. Please scan the QR code again.');
+        }
+
+        $this->guestSessionId = $guestSession->id;
+        $this->table = $guestSession->qrCode->table;
         $this->ensureActivePaymentMethod();
     }
 
@@ -143,11 +153,17 @@ class LandingPage extends Component
     {
         if (empty($this->cart) || empty($this->customerName)) return;
 
+        $guestSession = GuestSession::findOrFail($this->guestSessionId);
+
+        if ($guestSession->isExpired()) {
+            abort(410, 'Session expired. Please scan the QR code again.');
+        }
+
         $this->ensureActivePaymentMethod();
 
         $order = $this->orderService->processOrder(
             $this->cart,
-            $this->table->id,
+            $guestSession->qrCode->table_id,
             $this->customerName,
             $this->orderType,
             null,

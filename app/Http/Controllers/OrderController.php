@@ -2,43 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GuestSession;
 use App\Models\Table;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class OrderController extends Controller
 {
     /**
-     * Resolve a QR-code scan and display the customer-facing menu page.
+     * Resolve a QR-code scan into a fresh guest session and redirect to the menu.
      *
-     * Route: GET /order/{table_token}
+     * Route: GET /order/{table_token}  (the URL printed on the physical QR — never changes)
      *
-     * Security rules:
-     *  - The qr_token must exist in the tables table.
-     *  - Meja with status "reserved" is treated as unavailable → 404.
-     *  - On success, table_id is written to the session so that Livewire
-     *    self-order components can read it without re-validating the token.
-     *
-     * @param  string  $table_token  The qr_token encoded in the QR image.
+     * A new GuestSession is minted on every scan, valid for 1 hour. The menu
+     * and checkout flows trust the session token from here on, not the
+     * table_token or any table/qr id the client might send.
      */
-    public function menu(Request $request, string $table_token)
+    public function scan(string $table_token): RedirectResponse
     {
-        // Resolve the table by token — never expose the raw primary key in URLs
-        $table = Table::where('qr_token', $table_token)->first();
+        $table = Table::where('qr_token', $table_token)->firstOrFail();
 
-        // Token not found or meja is reserved → hard 404
-        if (! $table || $table->status === 'reserved') {
-            abort(404, 'Meja tidak ditemukan atau tidak tersedia.');
+        $qrCode = $table->qrCode;
+
+        if (! $qrCode) {
+            abort(404, 'QR code not found for this table.');
         }
 
-        // Persist identifiers in session so Livewire components can trust them
-        session([
-            'order_table_id'    => $table->id,
-            'order_table_name'  => $table->name,
-            'order_table_token' => $table->qr_token,
-        ]);
+        $session = GuestSession::startFor($qrCode);
 
-        // Delegate rendering to the LandingPage Livewire component which already
-        // contains the menu UI. Pass table context via route/session.
-        return view('livewire.order.menu', compact('table'));
+        return redirect()->route('menu', ['session_token' => $session->token]);
     }
 }

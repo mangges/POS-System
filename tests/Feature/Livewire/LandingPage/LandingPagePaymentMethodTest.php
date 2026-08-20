@@ -4,9 +4,11 @@ namespace Tests\Feature\Livewire\LandingPage;
 
 use App\Livewire\LandingPage\LandingPage;
 use App\Models\Category;
+use App\Models\GuestSession;
 use App\Models\Order;
 use App\Models\PaymentMethodSetting;
 use App\Models\Product;
+use App\Models\QrCode;
 use App\Models\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -21,13 +23,24 @@ class LandingPagePaymentMethodTest extends TestCase
         return Table::create(['number' => '1', 'barcode' => 'T1']);
     }
 
+    private function sessionTokenFor(Table $table): string
+    {
+        $qrCode = QrCode::create([
+            'table_id' => $table->id,
+            'qr_url' => 'https://example.test/order/' . $table->qr_token,
+            'file_path' => 'qrcodes/table_' . $table->id . '.svg',
+        ]);
+
+        return GuestSession::startFor($qrCode)->token;
+    }
+
     public function test_inactive_methods_are_excluded_from_active_methods(): void
     {
         $table = $this->createTable();
 
         PaymentMethodSetting::where('method', 'transfer')->update(['is_active' => false]);
 
-        Livewire::test(LandingPage::class, ['table_token' => $table->qr_token])
+        Livewire::test(LandingPage::class, ['session_token' => $this->sessionTokenFor($table)])
             ->assertSet('activeMethods', ['cash', 'qris']);
     }
 
@@ -37,7 +50,7 @@ class LandingPagePaymentMethodTest extends TestCase
 
         PaymentMethodSetting::where('method', 'cash')->update(['is_active' => false]);
 
-        Livewire::test(LandingPage::class, ['table_token' => $table->qr_token])
+        Livewire::test(LandingPage::class, ['session_token' => $this->sessionTokenFor($table)])
             ->assertSet('paymentMethod', 'qris');
     }
 
@@ -50,7 +63,7 @@ class LandingPagePaymentMethodTest extends TestCase
             'qris_static_string' => '0002010102112614TESTMERCHANT015204581253033605802ID5909TOKO TEST6007JAKARTA63041066',
         ]);
 
-        Livewire::test(LandingPage::class, ['table_token' => $table->qr_token])
+        Livewire::test(LandingPage::class, ['session_token' => $this->sessionTokenFor($table)])
             ->set('paymentMethod', 'qris')
             ->assertSet('qrisImage', fn (?string $svg) => $svg !== null && str_contains($svg, '<svg'));
     }
@@ -73,7 +86,7 @@ class LandingPagePaymentMethodTest extends TestCase
 
         PaymentMethodSetting::where('method', 'transfer')->update(['is_active' => false]);
 
-        Livewire::test(LandingPage::class, ['table_token' => $table->qr_token])
+        Livewire::test(LandingPage::class, ['session_token' => $this->sessionTokenFor($table)])
             ->call('addToCart', $product->id)
             ->set('customerName', 'Test Customer')
             // Bypass the UI gating and force a deactivated method directly, simulating
@@ -108,7 +121,7 @@ class LandingPagePaymentMethodTest extends TestCase
             'qris_static_string' => '0002010102112614TESTMERCHANT015204581253033605802ID5909TOKO TEST6007JAKARTA63041066',
         ]);
 
-        $test = Livewire::test(LandingPage::class, ['table_token' => $table->qr_token])
+        $test = Livewire::test(LandingPage::class, ['session_token' => $this->sessionTokenFor($table)])
             ->call('addToCart', $product->id)
             ->set('customerName', 'Test Customer')
             ->set('paymentMethod', 'qris')

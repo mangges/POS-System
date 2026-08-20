@@ -64,7 +64,7 @@ class Table extends Model
      */
     public function getOrderUrl(): string
     {
-        return route('order.menu', ['table_token' => $this->qr_token]);
+        return route('order', ['table_token' => $this->qr_token]);
     }
 
     /**

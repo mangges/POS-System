@@ -2,6 +2,7 @@
 
 use App\Filament\CustomPages\PosCashier;
 use App\Filament\CustomPages\PosReceipt;
+use App\Http\Controllers\OrderController;
 use App\Livewire\Auth\Login;
 use App\Livewire\LandingPage\LandingPage;
 use App\Livewire\Pos\Receipt;
@@ -42,12 +43,15 @@ Route::middleware($adminPanel->getMiddleware())
     });
 
 // ---------------------------------------------------------------------------
-// Customer Self-Order — two entry points:
+// Customer Self-Order:
 //
-//   1. Direct Livewire route at /order (legacy, no table context)
-//   2. QR-code route at /order/{table_token} — validated by OrderController
-//      Uses qr_token (not table PK) in the URL for security.
+//   1. Physical QR points at /order/{table_token} (never changes). Each hit
+//      validates the table token and mints a fresh guest session, valid for
+//      1 hour, then redirects to the menu using that session's token.
+//   2. /menu/{session_token} renders the actual ordering UI. The session
+//      token — not the table token — is what identifies the guest for the
+//      rest of their visit (menu browsing + checkout).
 // ---------------------------------------------------------------------------
-#Public route for customer self-ordering (legacy, no table context)
-Route::get('/order/{table_token}', LandingPage::class)->name('order');
+Route::get('/order/{table_token}', [OrderController::class, 'scan'])->name('order');
+Route::get('/menu/{session_token}', LandingPage::class)->name('menu');
 Route::get('/{token}', Receipt::class)->name('receipt.show');
