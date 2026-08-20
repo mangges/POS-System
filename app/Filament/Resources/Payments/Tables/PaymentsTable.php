@@ -14,7 +14,7 @@ class PaymentsTable
     {
         return $table
             ->columns([
-                TextColumn::make('order.id')
+                TextColumn::make('order.order_number')
                     ->searchable(),
                 TextColumn::make('payment_method')
                     ->badge(),
