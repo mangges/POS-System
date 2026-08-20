@@ -196,3 +196,11 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        window.Echo.channel('orders').listen('.OrderPlaced', () => {
+            Livewire.dispatch('order-placed');
+        });
+    });
+</script>

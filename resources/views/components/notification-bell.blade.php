@@ -24,7 +24,8 @@
         </template>
         <ul class="pos-bell-list">
             <template x-for="item in $store.notifBell.items" :key="item.id">
-                <li class="pos-bell-item" :class="'pos-bell-item--' + item.type">
+                <li class="pos-bell-item pos-bell-item-clickable" :class="'pos-bell-item--' + item.type"
+                    @click="open = false; $wire.dispatch('show-order-detail', { orderId: item.orderId })">
                     <span class="pos-bell-item-text" x-text="item.message"></span>
                     <span class="pos-bell-item-time" x-text="item.time"></span>
                 </li>
@@ -112,6 +113,9 @@
         font-size: 0.82rem;
     }
 
+    .pos-bell-item-clickable { cursor: pointer; }
+    .pos-bell-item-clickable:hover { background: var(--color-bg-subtle, #f6f6f7); }
+
     .pos-bell-item--success { border-left-color: #2f9e44; }
     .pos-bell-item--danger { border-left-color: #e03131; }
     .pos-bell-item--warning { border-left-color: #f08c00; }
@@ -140,6 +144,7 @@
                 id: ++store.seq,
                 message: event.message,
                 type: event.type ?? 'info',
+                orderId: event.orderId ?? null,
                 time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
             });
             store.unread++;

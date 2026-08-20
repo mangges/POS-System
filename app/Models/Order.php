@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Enum\Orders\OrderStatus;
+use App\Events\OrderPlaced;
 use App\Events\OrderStatusUpdated;
 use Filament\Notifications\Notification;
 
@@ -23,6 +24,10 @@ class Order extends Model
                 ->body($order->customer_name . ' — Rp ' . number_format((float) $order->total_amount, 0, ',', '.'))
                 ->broadcast(User::all())
                 ->sendToDatabase(User::all());
+
+            if ($order->table_id) {
+                broadcast(new OrderPlaced($order));
+            }
         });
 
         static::updated(function (Order $order) {

@@ -5,6 +5,7 @@ namespace App\Livewire\Pos;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 
 use App\Models\Category;
 use App\Models\Product;
@@ -187,6 +188,12 @@ class Cashier extends Component
         $order = Order::findOrFail($id);
         $this->previewQrisAmount = (int) round($order->total_amount);
         $this->showQrisPreviewModal = true;
+    }
+
+    #[On('order-placed')]
+    public function refreshTableOrders(): void
+    {
+        // no-op: re-render alone re-evaluates the (uncached) computed order lists below
     }
 
     #[Computed]

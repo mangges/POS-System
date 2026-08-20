@@ -5,6 +5,7 @@ namespace App\Livewire\LandingPage;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Table;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -31,6 +32,8 @@ class LandingPage extends Component
     public bool $orderSubmitted = false;
     public ?string $lastOrderNumber = null;
     public ?int $lastOrderTotal = null;
+
+    public ?int $viewingOrderId = null;
 
     protected OrderService $orderService;
 
@@ -98,6 +101,42 @@ class LandingPage extends Component
         if ($status === OrderStatus::Cancelled->value) {
             $this->closePaymentModal();
         }
+    }
+
+    #[On('show-order-detail')]
+    public function showOrderDetail($orderId): void
+    {
+        $order = Order::where('id', (int) $orderId)->where('table_id', $this->table->id)->first();
+
+        if (! $order) {
+            return;
+        }
+
+        if ($order->status === OrderStatus::Completed) {
+            if ($order->token) {
+                $this->redirect(route('receipt.show', ['token' => $order->token]));
+            }
+            return;
+        }
+
+        $this->viewingOrderId = $order->id;
+    }
+
+    public function closeOrderDetailModal(): void
+    {
+        $this->viewingOrderId = null;
+    }
+
+    #[Computed]
+    public function viewingOrder(): ?Order
+    {
+        if (! $this->viewingOrderId) {
+            return null;
+        }
+
+        return Order::with(['items.product', 'payment'])
+            ->where('table_id', $this->table->id)
+            ->find($this->viewingOrderId);
     }
 
     public function checkout()

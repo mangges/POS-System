@@ -486,6 +486,11 @@
     @if ($showPaymentModal)
         @include('livewire.landing-page.payment_modal')
     @endif
+
+    <!-- Order Detail Modal (from notification click) -->
+    @if ($viewingOrderId)
+        @include('livewire.landing-page.order_detail_modal')
+    @endif
 </div>
 @push('scripts')
     @vite('resources/js/landing-page.js')
@@ -494,7 +499,7 @@
             window.Echo.channel('table.{{ $table->qr_token }}')
                 .stopListening('.OrderStatusUpdated')
                 .listen('.OrderStatusUpdated', (e) => {
-                    Livewire.dispatch('notify', { message: e.message, type: e.type });
+                    Livewire.dispatch('notify', { message: e.message, type: e.type, orderId: e.order_id, status: e.status });
                     Livewire.dispatch('order-status-updated', { orderId: e.order_id, status: e.status });
                 });
         });
