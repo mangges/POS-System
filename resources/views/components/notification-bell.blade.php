@@ -1,25 +1,29 @@
 {{--
     Notification bell for public pages (landing page). Session-only by design:
-    state lives in this Alpine component's memory, fed live by the 'notify'
-    Livewire event (same event notify.blade.php's toast listens to — see the
-    Echo listener in landing-page.blade.php). Nothing is persisted or fetched
-    from the server, so a fresh page load (new customer scanning the same
-    table) always starts with an empty list.
+    state lives in an Alpine.store (registered once via alpine:init, which
+    Alpine fires exactly once per page load regardless of how many times
+    Livewire re-renders this component) fed by the 'notify' Livewire event
+    (same event notify.blade.php's toast listens to — see the Echo listener
+    in landing-page.blade.php). A per-component Livewire.on() would have
+    re-subscribed on every Livewire re-render, stacking duplicate listeners —
+    the store is registered outside that lifecycle so it only ever happens
+    once. Nothing is persisted or fetched from the server, so a fresh page
+    load (new customer scanning the same table) always starts empty.
 --}}
-<div x-data="posNotifBell()" x-init="init()" class="pos-bell" @click.outside="open = false">
+<div x-data="{ open: false, toggle() { this.open = !this.open; if (this.open) { $store.notifBell.unread = 0; } } }" class="pos-bell" @click.outside="open = false">
     <button type="button" class="pos-bell-trigger" @click="toggle()" aria-label="Notifikasi">
         <i class="bi bi-bell"></i>
-        <span class="pos-bell-badge" x-show="unread > 0" x-text="unread > 9 ? '9+' : unread" x-cloak></span>
+        <span class="pos-bell-badge" x-show="$store.notifBell.unread > 0" x-text="$store.notifBell.unread > 9 ? '9+' : $store.notifBell.unread" x-cloak></span>
     </button>
 
     <div class="pos-bell-panel" x-show="open" x-cloak @click.outside="open = false"
         x-transition:enter="pos-bell-panel-enter" x-transition:enter-start="pos-bell-panel-enter-start" x-transition:enter-end="pos-bell-panel-enter-end">
         <div class="pos-bell-panel-header">Notifikasi</div>
-        <template x-if="items.length === 0">
+        <template x-if="$store.notifBell.items.length === 0">
             <div class="pos-bell-empty">Belum ada notifikasi</div>
         </template>
         <ul class="pos-bell-list">
-            <template x-for="item in items" :key="item.id">
+            <template x-for="item in $store.notifBell.items" :key="item.id">
                 <li class="pos-bell-item" :class="'pos-bell-item--' + item.type">
                     <span class="pos-bell-item-text" x-text="item.message"></span>
                     <span class="pos-bell-item-time" x-text="item.time"></span>
@@ -118,31 +122,27 @@
 </style>
 
 <script>
-    function posNotifBell() {
-        return {
-            open: false,
-            unread: 0,
+    document.addEventListener('alpine:init', () => {
+        if (window.__posNotifBellStoreRegistered) {
+            return;
+        }
+        window.__posNotifBellStoreRegistered = true;
+
+        Alpine.store('notifBell', {
             items: [],
-            _seq: 0,
+            unread: 0,
+            seq: 0,
+        });
 
-            init() {
-                Livewire.on('notify', (event) => {
-                    this.items.unshift({
-                        id: ++this._seq,
-                        message: event.message,
-                        type: event.type ?? 'info',
-                        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                    });
-                    this.unread++;
-                });
-            },
-
-            toggle() {
-                this.open = !this.open;
-                if (this.open) {
-                    this.unread = 0;
-                }
-            },
-        };
-    }
+        Livewire.on('notify', (event) => {
+            const store = Alpine.store('notifBell');
+            store.items.unshift({
+                id: ++store.seq,
+                message: event.message,
+                type: event.type ?? 'info',
+                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            });
+            store.unread++;
+        });
+    });
 </script>

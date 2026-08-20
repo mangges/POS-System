@@ -492,6 +492,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             window.Echo.channel('table.{{ $table->qr_token }}')
+                .stopListening('.OrderStatusUpdated')
                 .listen('.OrderStatusUpdated', (e) => {
                     Livewire.dispatch('notify', { message: e.message, type: e.type });
                 });
