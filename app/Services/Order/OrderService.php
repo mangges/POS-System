@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Services\Cart\CartCalculatorService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Enum\Orders\OrderStatus;
 use App\Enum\Orders\PaymentStatus;
 
@@ -16,7 +17,7 @@ class OrderService
         private CartCalculatorService $cartCalculatorService
     ) {}
 
-    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null): Order
+    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null, string $paymentMethod = 'cash'): Order
     {
         $cartSubtotal = $this->cartCalculatorService->subtotal($cartItems);
         $cartTax = $this->cartCalculatorService->tax($cartSubtotal);
@@ -37,19 +38,19 @@ class OrderService
             $order = Order::findOrFail($activeDraft);
             $order->update($data);
         } else {
-            $additionalData = [
-                'order_number' => $this->createOrderNumber(),
-                'user_id' => Auth::id(),
-            ];
-            
-            $order = Order::create(array_merge($data, $additionalData));
+            $order = DB::transaction(function () use ($data) {
+                $data['order_number'] = $this->createOrderNumber();
+                $data['user_id'] = Auth::id();
+
+                return Order::create($data);
+            });
         }
 
         $this->storeOrderItem($order->id, $cartItems, $activeDraft);
 
         $payment = Payment::create([
             'order_id' => $order->id,
-            'payment_method' => 'cash',
+            'payment_method' => $paymentMethod,
             'amount' => 0,
             'status' => PaymentStatus::Pending,
             'transaction_id' => null,
@@ -122,11 +123,31 @@ class OrderService
         return $order;
     }
 
+    public function acceptOrder(int $orderId): Order
+    {
+        return Order::with('items')->findOrFail($orderId);
+    }
+
+    public function declineOrder(int $orderId): Order
+    {
+        $order = Order::findOrFail($orderId);
+
+        $order->update(['status' => OrderStatus::Cancelled]);
+
+        if ($order->payment) {
+            $order->payment->update(['status' => PaymentStatus::Failed]);
+        }
+
+        return $order;
+    }
+
     private function createOrderNumber(): string
     {
-        $lastOrder = Order::latest()->first();
-        $lastOrderNumber = $lastOrder ? (int) substr($lastOrder->order_number, 3) : 0;
-        $newOrderNumber = str_pad($lastOrderNumber + 1, 6, '0', STR_PAD_LEFT);
-        return 'ORD' . $newOrderNumber;
+        $datePrefix = now()->format('dmY');
+        do {
+            $orderNumber = "ORD-{$datePrefix}-" . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        } while (Order::where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
     }
 }

@@ -2,13 +2,16 @@
 
 namespace App\Enum\Orders;
 
-enum PaymentStatus: string
+use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Contracts\HasColor;
+
+enum PaymentStatus: string implements HasLabel, HasColor
 {
     case Pending = 'pending';
     case Success = 'success';
     case Failed = 'failed';
 
-    public function label(): string
+    public function getLabel(): string
     {
         return match($this) {
             self::Pending => 'Pending',
@@ -17,12 +20,12 @@ enum PaymentStatus: string
         };
     }
 
-    public function color(): string
+    public function getColor(): string
     {
         return match($this) {
-            self::Pending => 'yellow',
-            self::Success => 'green',
-            self::Failed => 'red',
+            self::Pending => 'warning',
+            self::Success => 'success',
+            self::Failed => 'danger',
         };
     }
 }

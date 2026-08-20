@@ -24,13 +24,9 @@ class StockMovement extends Model
         'quantity' => 'decimal:2',
     ];
 
-    public function reference()
+    public function reference(): MorphTo
     {
-        if ($this->reference_type === 'product') {
-            return $this->belongsTo(Product::class, 'reference_id');
-        }
-        
-        return $this->belongsTo(RawMaterial::class, 'reference_id');
+        return $this->morphTo();
     }
 
     public function user(): BelongsTo

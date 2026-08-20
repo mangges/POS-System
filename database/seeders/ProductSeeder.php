@@ -46,7 +46,7 @@ class ProductSeeder extends Seeder
                 'has_recipe' => false,
                 'stock' => 50,
                 'is_out_of_stock' => false,
-                'destination' => 'cashier',
+                'destination' => 'kitchen',
             ],
         ];
 

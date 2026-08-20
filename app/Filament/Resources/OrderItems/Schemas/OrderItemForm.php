@@ -31,15 +31,6 @@ class OrderItemForm
                     ->numeric(),
                 Textarea::make('notes')
                     ->columnSpanFull(),
-                Select::make('status')
-                    ->options([
-            'pending' => 'Pending',
-            'preparing' => 'Preparing',
-            'ready' => 'Ready',
-            'delivered' => 'Delivered',
-        ])
-                    ->default('pending')
-                    ->required(),
             ]);
     }
 }

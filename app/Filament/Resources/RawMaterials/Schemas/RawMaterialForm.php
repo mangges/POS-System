@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RawMaterials\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -13,7 +14,10 @@ class RawMaterialForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                TextInput::make('unit')
+                Select::make('unit_id')
+                    ->relationship('unit', 'symbol')
+                    ->searchable()
+                    ->preload()
                     ->required(),
                 TextInput::make('stock')
                     ->required()

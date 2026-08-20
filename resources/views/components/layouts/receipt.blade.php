@@ -89,8 +89,9 @@
     </style>
 </head>
 <body>
+    <x-notify />
 
-    <a href="{{ route('cashier.index') }}" class="back-to-pos" wire:navigate>
+    <a href="{{ route('filament.admin.pages.cashier') }}" class="back-to-pos" wire:navigate>
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
         </svg>

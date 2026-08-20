@@ -17,6 +17,7 @@ class Order extends Model
         'order_number',
         'table_id',
         'customer_id',
+        'customer_name',
         'user_id',
         'total_amount',
         'tax',
@@ -58,5 +59,10 @@ class Order extends Model
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
+    }
+
+    public function getCustomerDisplayNameAttribute(): ?string
+    {
+        return $this->customer?->name ?? $this->customer_name;
     }
 }

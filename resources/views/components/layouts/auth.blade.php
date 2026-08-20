@@ -13,6 +13,8 @@
         @livewireStyles
     </head>
     <body>
+        <x-notify />
+
         {{ $slot }}
 
         <!-- Livewire Scripts -->

@@ -8,6 +8,8 @@ use App\Models\Table;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use App\Traits\CartCalculation;
+use App\Services\Order\OrderService;
+use App\Traits\PaymentMethodSelection;
 
 class LandingPage extends Component
 {
@@ -17,12 +19,30 @@ class LandingPage extends Component
     public $search = '';
     public $selectedCategory = null;
     public $selectedProduct = null;
+    public ?int $currentOrderId = null;
+
+    public $showPaymentModal = false;
+    public string $customerName = '';
+    public string $orderType = 'dine-in';
+    public string $paymentMethod = 'cash';
+    public bool $orderSubmitted = false;
+    public ?string $lastOrderNumber = null;
+    public ?int $lastOrderTotal = null;
+
+    protected OrderService $orderService;
 
     use CartCalculation;
+    use PaymentMethodSelection;
+
+    public function boot(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
 
     public function mount(string $table_token)
     {
         $this->table = Table::where('qr_token', $table_token)->firstOrFail();
+        $this->ensureActivePaymentMethod();
     }
 
     public function setCategory($categoryId)
@@ -38,6 +58,45 @@ class LandingPage extends Component
     public function closeProductModal()
     {
         $this->selectedProduct = null;
+    }
+
+    public function openPaymentModal()
+    {
+        if (empty($this->cart)) return;
+
+        $this->showPaymentModal = true;
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
+
+        if ($this->orderSubmitted) {
+            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId']);
+            $this->ensureActivePaymentMethod();
+        }
+    }
+
+    public function checkout()
+    {
+        if (empty($this->cart) || empty($this->customerName)) return;
+
+        $this->ensureActivePaymentMethod();
+
+        $order = $this->orderService->processOrder(
+            $this->cart,
+            $this->table->id,
+            $this->customerName,
+            $this->orderType,
+            null,
+            $this->paymentMethod
+        );
+
+        $this->currentOrderId = $order->id;
+        $this->lastOrderNumber = $order->order_number;
+        $this->lastOrderTotal = (int) round($order->total_amount);
+        $this->orderSubmitted = true;
+        $this->reset('cart');
     }
 
     public function render()

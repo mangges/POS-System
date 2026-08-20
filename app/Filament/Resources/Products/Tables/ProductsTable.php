@@ -21,7 +21,7 @@ class ProductsTable
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('price')
-                    ->money()
+                    ->money('Rp.')
                     ->sortable(),
                 IconColumn::make('has_recipe')
                     ->boolean(),
@@ -31,7 +31,14 @@ class ProductsTable
                 IconColumn::make('is_out_of_stock')
                     ->boolean(),
                 TextColumn::make('destination')
-                    ->badge(),
+                    ->badge()
+                    ->label("Production Place")
+                    ->color(fn(string $state): string => match ($state) {
+                        'kitchen' => 'info',
+                        'bar' => 'success',
+                        default => 'warning',
+                    })
+                    ->formatStateUsing(fn(string $state): string => ucfirst($state)),
                 ImageColumn::make('image'),
                 IconColumn::make('is_active')
                     ->boolean(),

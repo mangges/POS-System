@@ -3,10 +3,19 @@
         <div class="receipt-scroll-area">
             <div class="thermal-receipt" id="printable-receipt">
                 <div class="receipt-header">
-                    <h2>Pos cafee</h2>
-                    <p>Jl. Raya Tanah lot No. 0, Bali</p>
-                    <p>Telp: 0812-3456-***</p>
-                    <p>www.poscafee.com</p>
+                    @if($this->receiptSettings->logo_path)
+                    <img src="{{ Storage::disk('public')->url($this->receiptSettings->logo_path) }}" alt="Logo" style="max-width: 80px; margin: 0 auto 8px;">
+                    @endif
+                    <h2>{{ $this->receiptSettings->store_name }}</h2>
+                    @if($this->receiptSettings->address)
+                    <p>{{ $this->receiptSettings->address }}</p>
+                    @endif
+                    @if($this->receiptSettings->phone)
+                    <p>Telp: {{ $this->receiptSettings->phone }}</p>
+                    @endif
+                    @if($this->receiptSettings->website)
+                    <p>{{ $this->receiptSettings->website }}</p>
+                    @endif
                     <p>{{ $this->order->created_at->format('d/m/Y') }}</p>
                 </div>
                 
@@ -46,7 +55,7 @@
                         <span>{{ number_format($this->subtotal, 0, ',', '.') }}</span>
                     </div>
                     <div class="receipt-row">
-                        <span>PPN (11%)</span>
+                        <span>PPN ({{ $this->subtotal > 0 ? round($this->order->tax / $this->subtotal * 100) : 0 }}%)</span>
                         <span>{{ number_format($this->order->tax, 0, ',', '.') }}</span>
                     </div>
                     <div class="receipt-row grand-total">
@@ -63,17 +72,24 @@
                     </div>
                 </div>
     
+                @if($this->receiptSettings->show_qr)
                 <div class="receipt-divider"></div>
-    
+
                 <div class="receipt-qr">
                     {!! QrCode::size(150)->generate(route('receipt.show', $this->order->token)) !!}
                     <p>Scan untuk e-receipt</p>
                 </div>
-                
+                @endif
+
+                @if($this->receiptSettings->footer_text)
+                <div class="receipt-divider"></div>
+
                 <div class="receipt-footer">
-                    <p>Terima kasih atas kunjungan Anda!</p>
-                    <p>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan.</p>
+                    @foreach(explode("\n", $this->receiptSettings->footer_text) as $line)
+                    <p>{{ trim($line) }}</p>
+                    @endforeach
                 </div>
+                @endif
             </div>
         </div>
     </div>
@@ -92,7 +108,7 @@
                 </div>
                 <div class="summary-item">
                     <label>Status</label>
-                    <span style="color: {{ $this->payment->status->color() }}; font-weight: 600;">{{ $this->payment->status->label() ?? '-' }}</span>
+                    <span style="color: {{ match($this->payment->status->getColor()) { 'success' => 'var(--color-success-text)', 'warning' => 'var(--color-warning-text)', 'danger' => 'var(--color-danger-text)', default => 'var(--color-text-muted)' } }}; font-weight: 600;">{{ $this->payment->status->getLabel() ?? '-' }}</span>
                 </div>
                 <div class="summary-item">
                     <label>Pelanggan</label>
@@ -118,7 +134,7 @@
                     Download PDF
                 </button> --}}
 
-                <a href="{{ route('cashier.index') }}" wire:navigate class="btn btn-draft">
+                <a href="{{ route('filament.admin.pages.cashier') }}" wire:navigate class="btn btn-draft">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                     Simpan dan Kembali
                 </a>

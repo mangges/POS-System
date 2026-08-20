@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
+use App\Traits\PaymentMethodSelection;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,8 @@ class Cashier extends Component
     protected OrderService $orderService;
     public $customerName = '';
     public string $paymentMethod = 'cash';
+    public bool $paymentConfirmed = false;
+    public array $confirmedPayments = [];
     public ?int $currentOrderId = null;
     public string $orderType = 'dine-in';
 
@@ -33,10 +36,14 @@ class Cashier extends Component
     
     public $showPaymentModal = false;
     public $showDraftsModal = false;
+    public $showFromTableModal = false;
+    public $showQrisPreviewModal = false;
+    public ?int $previewQrisAmount = null;
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
     }
+    use PaymentMethodSelection;
 
     public function boot(OrderService $orderService)
     {
@@ -47,6 +54,12 @@ class Cashier extends Component
     {
         $this->categories = Category::all();
         $this->loadProducts();
+        $this->ensureActivePaymentMethod();
+    }
+
+    public function updatedPaymentMethod(): void
+    {
+        $this->paymentConfirmed = false;
     }
 
     public function addToCart(...$params)
@@ -61,13 +74,14 @@ class Cashier extends Component
     #[Computed]
     public function draftOrders()
     {
-        return Order::where('status', 'pending')->get();
+        return Order::with(['table', 'items.product'])->where('status', 'pending')->where('table_id', NULL)->get();
     }
 
     public function loadDraft(int $id): void
     {
-        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
-        
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'paymentConfirmed', 'cashReceived', 'currentOrderId', 'orderType', 'activeDraft']);
+        $this->ensureActivePaymentMethod();
+
         $order = Order::with('items')->findOrFail($id);
 
         $this->activeDraft = $order->id;
@@ -110,7 +124,7 @@ class Cashier extends Component
 
         $this->activeDraft = null;
         $this->reset('cart', 'customerName');
-        return redirect()->route('cashier.index')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
+        return redirect()->route('filament.admin.pages.cashier')->with('message', 'Data berhasil disimpan!')->with('type', 'success');
     }
 
     public function deleteDraft(int $id)
@@ -133,6 +147,69 @@ class Cashier extends Component
 
 
         return redirect()->back()->with('message', 'Draft berhasil dihapus!')->with('type', 'success');
+    }
+
+    public function openFromTableModal()
+    {
+        $this->showFromTableModal = true;
+    }
+
+    public function closeFromTableModal()
+    {
+        $this->showFromTableModal = false;
+    }
+
+    public function openQrisPreviewModal()
+    {
+        $this->showQrisPreviewModal = true;
+    }
+
+    public function closeQrisPreviewModal()
+    {
+        $this->showQrisPreviewModal = false;
+        $this->previewQrisAmount = null;
+    }
+
+    public function openQrisPreviewForOrder(int $id): void
+    {
+        $order = Order::findOrFail($id);
+        $this->previewQrisAmount = (int) round($order->total_amount);
+        $this->showQrisPreviewModal = true;
+    }
+
+    #[Computed]
+    public function fromTableOrders()
+    {
+        return Order::with(['table', 'items.product'])->where('status', 'pending')->whereNot('table_id', NULL)->get();
+    }
+
+    public function acceptTableOrder(int $id): void
+    {
+        $order = $this->orderService->acceptOrder($id);
+
+        $paymentMethod = $order->payment->payment_method;
+
+        if ($paymentMethod === 'qris' && ! ($this->confirmedPayments[$id] ?? false)) {
+            return;
+        }
+
+        $finalized = $this->orderService->finalizeOrder(
+            $order->id,
+            $paymentMethod,
+            $paymentMethod === 'cash' ? $order->total_amount : null,
+            $order->order_type
+        );
+
+        unset($this->confirmedPayments[$id]);
+        $this->closeFromTableModal();
+        $this->showReceipt($finalized->id);
+    }
+
+    public function declineTableOrder(int $id)
+    {
+        $this->orderService->declineOrder($id);
+
+        return redirect()->back()->with('message', 'Pesanan berhasil ditolak!')->with('type', 'success');
     }
 
     public function updatedSearch()
@@ -183,7 +260,10 @@ class Cashier extends Component
 
     public function finalizeOrder()
     {
+        $this->ensureActivePaymentMethod();
+
         if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
+        if ($this->paymentMethod !== 'cash' && ! $this->paymentConfirmed) return;
 
         $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
         $this->resetCashier();
@@ -194,7 +274,8 @@ class Cashier extends Component
 
     public function resetCashier()
     {
-        $this->reset(['cart', 'customerName', 'paymentMethod', 'cashReceived', 'currentOrderId', 'orderType']);
+        $this->reset(['cart', 'customerName', 'paymentMethod', 'paymentConfirmed', 'cashReceived', 'currentOrderId', 'orderType']);
+        $this->ensureActivePaymentMethod();
     }
 
     private function findCustomerIdByName($name)
@@ -206,6 +287,8 @@ class Cashier extends Component
     public function closePaymentModal()
     {
         $this->showPaymentModal = false;
+        $this->showQrisPreviewModal = false;
+        $this->previewQrisAmount = null;
     }
 
     public function showReceipt($orderId)

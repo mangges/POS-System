@@ -51,7 +51,10 @@ class Login extends Component
         if ($user) {
             Auth::login($user);
             session()->regenerate();
-            return redirect()->intended('/cashier');
+            if ($user->role === 'admin') {
+                return redirect('/admin');
+            }
+            return redirect('/cashier');
         }
 
         $this->addError('pin', 'PIN yang Anda masukkan salah.');
@@ -67,7 +70,12 @@ class Login extends Component
 
         if (Auth::attempt($credentials, $this->remember)) {
             session()->regenerate();
-            return redirect()->intended('/cashier');
+            
+            $user = Auth::user();
+            if (in_array($user->role, ['admin'])) {
+                return redirect('/admin');
+            }
+            return redirect('/cashier');
         }
 
         $this->addError('email', 'Kredensial yang diberikan tidak cocok dengan catatan kami.');

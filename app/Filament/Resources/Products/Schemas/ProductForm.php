@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class ProductForm
@@ -27,13 +29,45 @@ class ProductForm
                     ->numeric()
                     ->prefix('$'),
                 Toggle::make('has_recipe')
+                    ->live()
                     ->required(),
+                Repeater::make('recipes')
+                    ->relationship()
+                    ->schema([
+                        Select::make('raw_material_id')
+                            ->relationship('rawMaterial', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Select::make('unit_id')
+                            ->relationship('unit', 'symbol')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        TextInput::make('quantity')
+                            ->required()
+                            ->numeric(),
+                    ])
+                    ->columns(3)
+                    ->defaultItems(1)
+                    ->afterStateHydrated(function (Repeater $component, ?array $state): void {
+                        if (blank($state)) {
+                            $component->state([[]]);
+                        }
+                    })
+                    ->minItems(fn (Get $get) => $get('has_recipe') ? 1 : 0)
+                    ->visible(fn (Get $get) => $get('has_recipe'))
+                    ->columnSpanFull(),
                 TextInput::make('stock')
                     ->numeric(),
                 Toggle::make('is_out_of_stock')
                     ->required(),
                 Select::make('destination')
-                    ->options(['kitchen' => 'Kitchen', 'bar' => 'Bar', 'cashier' => 'Cashier'])
+                    ->options([
+                        'kitchen' => 'Kitchen', 
+                        'bar' => 'Bar', 
+                        'cashier' => 'Cashier'
+                        ])
                     ->default('kitchen')
                     ->required(),
                 FileUpload::make('image')

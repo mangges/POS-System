@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\ReceiptSetting;
 
 #[Layout('components.layouts.receipt')]
 class Receipt extends Component
@@ -39,6 +40,12 @@ class Receipt extends Component
     public function payment()
     {
         return $this->order->payment;
+    }
+
+    #[Computed]
+    public function receiptSettings()
+    {
+        return ReceiptSetting::current();
     }
 
     #[Computed]

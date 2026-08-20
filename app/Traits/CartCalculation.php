@@ -63,11 +63,10 @@ trait CartCalculation
         if (isset($this->cart[$key])) {
             if ($this->cart[$key]['qty'] > 1) {
                 $this->cart[$key]['qty']--;
+                $this->syncCart($key);
             } else {
                 $this->removeFromCart($key);
             }
-
-            $this->syncCart($key);
         }
     }
 

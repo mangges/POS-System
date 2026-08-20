@@ -2,9 +2,6 @@
 
 namespace App\Filament\Resources\StockMovements\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -14,13 +11,15 @@ class StockMovementsTable
     {
         return $table
             ->columns([
-                TextColumn::make('reference_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('reference_type')
+                TextColumn::make('reference.name')
+                    ->label('Item')
                     ->searchable(),
-                TextColumn::make('type')
+                TextColumn::make('reference_type')
+                    ->label('Type')
                     ->badge(),
+                TextColumn::make('type')
+                    ->badge()
+                    ->color(fn (string $state): string => $state === 'in' ? 'success' : 'danger'),
                 TextColumn::make('quantity')
                     ->numeric()
                     ->sortable(),
@@ -28,23 +27,11 @@ class StockMovementsTable
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->recordActions([]);
     }
 }

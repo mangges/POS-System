@@ -9,6 +9,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/cashier.css',
+                'resources/css/receipt.css',
                 'resources/css/landing-page.css',
                 'resources/js/app.js',
                 'resources/js/landing-page.js'

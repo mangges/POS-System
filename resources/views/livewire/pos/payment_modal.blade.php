@@ -8,21 +8,27 @@
         </div>
 
         <div class="payment-methods-grid">
+            @if(in_array('cash', $this->activeMethods))
             <label class="method-option {{ $this->paymentMethod === 'cash' ? 'active' : '' }}">
-                <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="cash" checked class="hidden-radio">
+                <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="cash" class="hidden-radio">
                 <i class="fas fa-money-bill-wave icon-cash"></i>
                 <span class="method-label label-cash">Tunai</span>
             </label>
+            @endif
+            @if(in_array('qris', $this->activeMethods))
             <label class="method-option {{ $this->paymentMethod === 'qris' ? 'active' : '' }}">
                 <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="qris" class="hidden-radio">
                 <i class="fas fa-qrcode icon-gray"></i>
                 <span class="method-label label-gray">QRIS</span>
             </label>
+            @endif
+            @if(in_array('transfer', $this->activeMethods))
             <label class="method-option {{ $this->paymentMethod === 'transfer' ? 'active' : '' }}">
                 <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="transfer" class="hidden-radio">
                 <i class="fas fa-credit-card icon-gray"></i>
                 <span class="method-label label-gray">Debit/Transfer</span>
             </label>
+            @endif
         </div>
 
         <div class="order-type-section">
@@ -42,10 +48,26 @@
         </div>
 
         @if($this->paymentMethod !== 'cash')
-            <div class="payment-notice">
-                <i class="bi bi-exclamation-circle"></i>
-                <p>Untuk metode pembayaran selain tunai, silakan selesaikan pembayaran melalui aplikasi terkait.</p>
-            </div>
+            @if($this->qrisImage)
+                <div class="payment-notice">
+                    <i class="bi bi-qr-code"></i>
+                    <p>Minta pelanggan scan QR ini untuk membayar Rp {{ number_format($this->total) }}.</p>
+                </div>
+                <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
+                <button type="button" wire:click="openQrisPreviewModal" class="btn-preview-qris">
+                    <i class="bi bi-arrows-fullscreen"></i> Tampilkan QRIS ke Pelanggan
+                </button>
+            @else
+                <div class="payment-notice">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <p>Untuk metode pembayaran selain tunai, silakan selesaikan pembayaran melalui aplikasi terkait.</p>
+                </div>
+            @endif
+
+            <label class="payment-confirm-checkbox">
+                <input type="checkbox" wire:model.live="paymentConfirmed">
+                <span>Konfirmasi pembayaran diterima.</span>
+            </label>
         @endif
 
         <div id="cashDenominations" class="{{ $this->paymentMethod !== 'cash' ? 'section-disabled' : '' }}">
@@ -117,6 +139,9 @@
 
             @php
                 $isInsufficient = $this->cashReceived !== null && $this->cashReceived < $this->total;
+                $canFinalize = $this->paymentMethod === 'cash'
+                    ? (! $isInsufficient && $cashReceived !== null)
+                    : $paymentConfirmed;
             @endphp
 
             <div class="@if($isInsufficient) change-box-danger @else change-box-success @endif">
@@ -133,7 +158,7 @@
         </div>
 
         <div class="submit-action-wrapper">
-            <button type="button" wire:click="finalizeOrder" class="btn-submit-payment" @if($isInsufficient || $cashReceived === null) disabled @endif>
+            <button type="button" wire:click="finalizeOrder" class="btn-submit-payment" @if(! $canFinalize) disabled @endif>
                 <i class="fas fa-check-circle"></i>
                 <span>Selesai & Cetak Struk</span>
             </button>

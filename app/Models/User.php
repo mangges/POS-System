@@ -12,8 +12,8 @@ use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'pin'])]
-#[Hidden(['password', 'remember_token', 'pin'])]
+#[Fillable(['name', 'email', 'password', 'pin', 'role'])]
+#[Hidden(['password', 'remember_token', 'pin', 'role'])]
 class User extends Authenticatable implements FilamentUser
 {
     public function canAccessPanel(Panel $panel): bool

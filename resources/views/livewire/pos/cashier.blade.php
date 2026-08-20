@@ -83,9 +83,20 @@
         <div class="pos-sidebar">
             <div class="cart-header">
                 <h2>Pesanan Saat Ini</h2>
-                <button wire:click="openDraftsModal" class="draft-lists-button">
-                    <i class="bi bi-archive"></i>
-                </button>
+                <div class="button-wrapper">
+                    <button wire:click="openFromTableModal" class="cashier-header-button table-order-lists-button">
+                        <i  class="bi bi-clipboard-fill"> </i>
+                        @if(count($this->fromTableOrders) > 0)
+                            <span class="header-button-badge">{{ count($this->fromTableOrders) }}</span>
+                        @endif
+                    </button>
+                    <button wire:click="openDraftsModal" class="cashier-header-button draft-lists-button">
+                        <i class="bi bi-archive"></i>
+                        @if(count($this->draftOrders) > 0)
+                            <span class="header-button-badge">{{ count($this->draftOrders) }}</span>
+                        @endif
+                    </button>
+                </div>
             </div>
             
             <div class="cart-items">
@@ -155,10 +166,22 @@
             <div class="drafts-modal-overlay @if(!$showDraftsModal) closed @endif">
                 @include('livewire.pos.drafts_modal')
             </div>
+
+            <div class="drafts-modal-overlay @if(!$showFromTableModal) closed @endif">
+                @include('livewire.pos.from_table_modal')
+            </div>
         </div>
 
         <div class="payment-modal-overlay @if(!$showPaymentModal) closed @endif">
-            @include('livewire.pos.payment_modal')
+            @if($showPaymentModal)
+                @include('livewire.pos.payment_modal')
+            @endif
+        </div>
+
+        <div class="qris-preview-overlay @if(!$showQrisPreviewModal) closed @endif">
+            @if($showQrisPreviewModal)
+                @include('livewire.pos.qris_preview_modal')
+            @endif
         </div>
     </div>
 </div>

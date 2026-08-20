@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use App\Enum\Orders\OrderStatus;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -32,18 +33,15 @@ class OrderForm
                     ->numeric()
                     ->default(0.0),
                 Select::make('status')
-                    ->options([
-            'pending' => 'Pending',
-            'processing' => 'Processing',
-            'completed' => 'Completed',
-            'cancelled' => 'Cancelled',
-        ])
-                    ->default('pending')
+                    ->options(OrderStatus::class)
+                    ->default(OrderStatus::Pending)
                     ->required(),
-                Select::make('payment_status')
-                    ->options(['unpaid' => 'Unpaid', 'paid' => 'Paid', 'failed' => 'Failed'])
-                    ->default('unpaid')
-                    ->required(),
+                Select::make('payment_id')
+                    ->relationship('payment', 'transaction_id')
+                    ->getOptionLabelFromRecordUsing(
+                        fn ($record) => "{$record->payment_method} - {$record->status->getLabel()} ({$record->transaction_id})"
+                    )
+                    ->searchable(),
                 Select::make('order_type')
                     ->options(['dine-in' => 'Dine in', 'takeaway' => 'Takeaway'])
                     ->default('dine-in')
