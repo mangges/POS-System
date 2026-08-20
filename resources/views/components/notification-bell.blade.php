@@ -1,14 +1,19 @@
+@props(['qrToken'])
 {{--
-    Notification bell for public pages (landing page). Session-only by design:
-    state lives in an Alpine.store (registered once via alpine:init, which
-    Alpine fires exactly once per page load regardless of how many times
-    Livewire re-renders this component) fed by the 'notify' Livewire event
-    (same event notify.blade.php's toast listens to — see the Echo listener
-    in landing-page.blade.php). A per-component Livewire.on() would have
-    re-subscribed on every Livewire re-render, stacking duplicate listeners —
-    the store is registered outside that lifecycle so it only ever happens
-    once. Nothing is persisted or fetched from the server, so a fresh page
-    load (new customer scanning the same table) always starts empty.
+    Notification bell for public pages (landing page). State lives in an
+    Alpine.store (registered once via alpine:init, which Alpine fires exactly
+    once per page load regardless of how many times Livewire re-renders this
+    component) fed by the 'notify' Livewire event (same event notify.blade.php's
+    toast listens to — see the Echo listener in landing-page.blade.php). A
+    per-component Livewire.on() would have re-subscribed on every Livewire
+    re-render, stacking duplicate listeners — the store is registered outside
+    that lifecycle so it only ever happens once.
+
+    Items are mirrored to sessionStorage (scoped by table qr_token) so a
+    refresh doesn't wipe them, but a new tab/session still starts empty and a
+    new customer at the same table never inherits the previous one's history
+    — the Echo listener in landing-page.blade.php only forwards events for
+    orders this browser session itself placed.
 --}}
 <div x-data="{ open: false, toggle() { this.open = !this.open; if (this.open) { $store.notifBell.unread = 0; } } }" class="pos-bell" @click.outside="open = false">
     <button type="button" class="pos-bell-trigger" @click="toggle()" aria-label="Notifikasi">
@@ -132,10 +137,18 @@
         }
         window.__posNotifBellStoreRegistered = true;
 
+        const storageKey = 'pos_bell_items_{{ $qrToken }}';
+        let saved = [];
+        try {
+            saved = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
+        } catch (e) {
+            saved = [];
+        }
+
         Alpine.store('notifBell', {
-            items: [],
+            items: saved,
             unread: 0,
-            seq: 0,
+            seq: saved.reduce((max, item) => Math.max(max, item.id), 0),
         });
 
         Livewire.on('notify', (event) => {
@@ -147,7 +160,9 @@
                 orderId: event.orderId ?? null,
                 time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
             });
+            store.items = store.items.slice(0, 30);
             store.unread++;
+            sessionStorage.setItem(storageKey, JSON.stringify(store.items));
         });
     });
 </script>

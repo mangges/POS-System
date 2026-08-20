@@ -7,7 +7,7 @@
         <div class="table-number">
             <span>{{ $table->name }}</span>
         </div>
-        <x-notification-bell />
+        <x-notification-bell :qr-token="$table->qr_token" />
     </nav>
 
     <div class="main-container">
@@ -496,9 +496,31 @@
     @vite('resources/js/landing-page.js')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const myOrdersKey = 'pos_my_orders_{{ $table->qr_token }}';
+            const myOrders = () => {
+                try {
+                    return JSON.parse(sessionStorage.getItem(myOrdersKey) || '[]');
+                } catch (e) {
+                    return [];
+                }
+            };
+
+            Livewire.on('order-placed', (event) => {
+                const ids = myOrders();
+                ids.push(event.orderId);
+                sessionStorage.setItem(myOrdersKey, JSON.stringify(ids));
+            });
+
             window.Echo.channel('table.{{ $table->qr_token }}')
                 .stopListening('.OrderStatusUpdated')
                 .listen('.OrderStatusUpdated', (e) => {
+                    // Table channel is shared by every order ever placed at this table,
+                    // so only forward events for orders this browser session itself placed
+                    // — otherwise a still-open tab from a previous customer at the same
+                    // table would get notified about the next customer's order.
+                    if (!myOrders().includes(e.order_id)) {
+                        return;
+                    }
                     Livewire.dispatch('notify', { message: e.message, type: e.type, orderId: e.order_id, status: e.status });
                     Livewire.dispatch('order-status-updated', { orderId: e.order_id, status: e.status });
                 });

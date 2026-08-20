@@ -175,6 +175,7 @@ class LandingPage extends Component
         $this->lastOrderTotal = (int) round($order->total_amount);
         $this->orderSubmitted = true;
         $this->reset('cart');
+        $this->dispatch('order-placed', orderId: $order->id);
     }
 
     public function render()
