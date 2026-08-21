@@ -1587,20 +1587,40 @@ h1, h2, h3 {
 .split-bill-panel {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .split-bill-pool {
+    background: var(--color-bg-secondary);
     border: 1px dashed var(--color-border);
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: var(--radius-md);
+    padding: 12px;
+}
+
+.split-bill-pool h4 {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 8px;
 }
 
 .split-pool-row {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.split-pool-row:last-child {
+    margin-bottom: 0;
+}
+
+.split-pool-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-main);
 }
 
 .split-pool-chips {
@@ -1610,70 +1630,292 @@ h1, h2, h3 {
 }
 
 .split-unit-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     cursor: grab;
-    background: var(--color-bg-secondary);
+    touch-action: none;
+    background: var(--color-card-bg);
     border: 1px solid var(--color-border);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 12px;
+    border-radius: var(--radius-full);
+    padding: 6px 12px 6px 8px;
+    min-height: 32px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-main);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
+}
+
+.split-unit-chip i {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+.split-unit-chip-lifted {
+    opacity: 0.35;
+}
+
+.split-unit-chip-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    margin: 0;
+    will-change: transform;
+    transition: none; /* overrides .split-unit-chip's hover transition — ghost transform updates every touchmove and must snap instantly, not ease */
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(154, 91, 46, 0.35), 0 16px 32px rgba(0, 0, 0, 0.35);
+}
+
+.split-drag-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+}
+
+.split-drag-overlay.is-visible {
+    opacity: 1;
+}
+
+.split-unit-chip:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.split-unit-chip:active {
+    cursor: grabbing;
+    transform: scale(0.97);
 }
 
 .split-bill-groups {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 }
 
 .split-group {
+    position: relative;
+    background: var(--color-card-bg);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 8px;
-    min-height: 48px;
+    border-radius: var(--radius-lg);
+    padding: 14px 16px 20px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
+    clip-path: polygon(
+        0% 0%, 100% 0%, 100% calc(100% - 7px),
+        95.5% 100%, 91% calc(100% - 7px),
+        86.5% 100%, 82% calc(100% - 7px),
+        77.5% 100%, 73% calc(100% - 7px),
+        68.5% 100%, 64% calc(100% - 7px),
+        59.5% 100%, 55% calc(100% - 7px),
+        50.5% 100%, 46% calc(100% - 7px),
+        41.5% 100%, 37% calc(100% - 7px),
+        32.5% 100%, 28% calc(100% - 7px),
+        23.5% 100%, 19% calc(100% - 7px),
+        14.5% 100%, 10% calc(100% - 7px),
+        5.5% 100%, 1% calc(100% - 7px),
+        0% calc(100% - 7px)
+    );
+}
+
+.split-group.is-drop-target,
+.split-group.is-touch-drop-target {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(154, 91, 46, 0.15), var(--shadow-md);
+    transform: scale(1.015);
 }
 
 .split-group-header {
     display: flex;
     justify-content: space-between;
-    font-weight: 600;
-    margin-bottom: 6px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.split-group-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-text-main);
+}
+
+.split-group-remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+    transition: var(--transition-normal);
+}
+
+.split-group-remove-btn:hover {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+@keyframes splitItemIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .split-group-item {
-    cursor: pointer;
-    font-size: 13px;
-    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--color-border);
+    animation: splitItemIn 200ms ease-out;
+}
+
+.split-group-item-name {
+    flex: 1;
+    color: var(--color-text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.split-group-item-price {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.split-item-remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+    transition: var(--transition-normal);
+}
+
+.split-item-remove-btn:hover {
+    color: #b91c1c;
+    background: #fef2f2;
 }
 
 .split-group-empty,
 .split-pool-empty {
     color: var(--color-text-muted);
-    font-size: 12px;
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 6px 0;
 }
 
 .split-group-subtotal {
-    text-align: right;
-    font-weight: 600;
-    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--color-border);
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.split-group-subtotal span:first-child {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+}
+
+.split-group-subtotal span:last-child {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--color-text-main);
 }
 
 .split-add-group {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .split-add-group input {
     flex: 1;
+    min-height: 44px;
     border: 1px solid var(--color-border);
-    border-radius: 6px;
-    padding: 6px 8px;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: var(--color-card-bg);
+    color: var(--color-text-main);
+}
+
+.split-add-group input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(154, 91, 46, 0.12);
+}
+
+.split-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    min-height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
+}
+
+.split-add-btn:hover {
+    background: #7e4a25;
+    transform: translateY(-1px);
+}
+
+.split-add-btn:active {
+    transform: translateY(0);
 }
 
 .split-toggle-btn {
     width: 100%;
-    text-align: center;
-    padding: 8px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    background: var(--color-bg-secondary);
-    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.8rem;
+    margin-bottom: 0.75rem;
+    border: 1.5px solid var(--color-accent);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.split-toggle-btn:hover {
+    background: var(--color-accent);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.split-toggle-btn.is-active {
+    background: var(--color-text-main);
+    border-color: var(--color-text-main);
+    color: white;
 }

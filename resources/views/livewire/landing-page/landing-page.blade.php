@@ -410,8 +410,9 @@
                             <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                         </div>
                     </div>
-                    <button type="button" wire:click="toggleSplitMode" class="split-toggle-btn">
-                        {{ $splitMode ? 'Batal Split' : 'Split Bill' }}
+                    <button type="button" wire:click="toggleSplitMode" class="split-toggle-btn @if($splitMode) is-active @endif">
+                        <i class="bi {{ $splitMode ? 'bi-x-circle-fill' : 'bi-people-fill' }}"></i>
+                        <span>{{ $splitMode ? 'Batal Split' : 'Split Bill' }}</span>
                     </button>
                     <a wire:click="openPaymentModal" @click="cartOpen = false" class="checkout-btn"
                         @if($splitMode && ! $this->canCheckoutSplit()) style="pointer-events:none;opacity:.5;" @endif>
@@ -504,6 +505,160 @@
 </div>
 @push('scripts')
     @vite('resources/js/landing-page.js')
+    <script>
+        // A cloned "ghost" chip follows the finger and the page dims behind it
+        // so the lift reads clearly on a small screen.
+        let splitDragProductId = null;
+        let splitGhostEl = null;
+        let splitOverlayEl = null;
+        let splitCurrentDropTarget = null;
+        let splitScrollParent = null;
+        let splitAutoScrollSpeed = 0;
+        let splitAutoScrollRAF = null;
+
+        function splitGetOverlay() {
+            if (!splitOverlayEl) {
+                splitOverlayEl = document.createElement('div');
+                splitOverlayEl.className = 'split-drag-overlay';
+                document.body.appendChild(splitOverlayEl);
+            }
+            return splitOverlayEl;
+        }
+
+        // `transform: translate()` only, never left/top — left/top forces a
+        // layout recalc on every touchmove, which is what made the ghost
+        // visibly lag behind the finger. transform is compositor-only, no reflow.
+        function splitPositionGhost(x, y) {
+            if (!splitGhostEl) return;
+            splitGhostEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(1.1)`;
+        }
+
+        function splitFindScrollParent(el) {
+            let node = el.parentElement;
+            while (node && node !== document.body) {
+                const style = getComputedStyle(node);
+                if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
+                    return node;
+                }
+                node = node.parentElement;
+            }
+            return null;
+        }
+
+        // With many split groups the ticket list overflows and scrolls — while
+        // a finger is busy holding a chip there's no free finger to scroll
+        // toward a ticket that's off-screen, so auto-scroll the list when the
+        // drag nears its top/bottom edge, same idea as Trello-style drag-and-drop.
+        function splitAutoScrollTick() {
+            if (splitScrollParent && splitAutoScrollSpeed !== 0) {
+                splitScrollParent.scrollTop += splitAutoScrollSpeed;
+            }
+            splitAutoScrollRAF = requestAnimationFrame(splitAutoScrollTick);
+        }
+
+        function splitUpdateAutoScroll(clientY) {
+            if (!splitScrollParent) {
+                splitAutoScrollSpeed = 0;
+                return;
+            }
+
+            const rect = splitScrollParent.getBoundingClientRect();
+            const edge = 60;
+            const maxSpeed = 14;
+
+            if (clientY < rect.top + edge) {
+                splitAutoScrollSpeed = -maxSpeed * Math.min(1, (rect.top + edge - clientY) / edge);
+            } else if (clientY > rect.bottom - edge) {
+                splitAutoScrollSpeed = maxSpeed * Math.min(1, (clientY - (rect.bottom - edge)) / edge);
+            } else {
+                splitAutoScrollSpeed = 0;
+            }
+        }
+
+        // Mouse-driven native HTML5 drag never touches the touch functions
+        // above, so it needs its own hook into the same auto-scroll: dragstart
+        // primes the scroll parent + RAF loop (mirrors touchstart), a
+        // document-wide dragover listener feeds it the live cursor position
+        // (dragover doesn't fire on the chip itself once the cursor leaves
+        // it), dragend tears both down.
+        function splitDragStart(event) {
+            splitScrollParent = splitFindScrollParent(event.currentTarget);
+            splitAutoScrollSpeed = 0;
+            cancelAnimationFrame(splitAutoScrollRAF);
+            splitAutoScrollRAF = requestAnimationFrame(splitAutoScrollTick);
+        }
+
+        function splitDragEnd() {
+            cancelAnimationFrame(splitAutoScrollRAF);
+            splitAutoScrollSpeed = 0;
+            splitScrollParent = null;
+        }
+
+        document.addEventListener('dragover', (event) => {
+            if (splitScrollParent) splitUpdateAutoScroll(event.clientY);
+        });
+
+        function splitTouchStart(event, productId) {
+            splitDragProductId = productId;
+            const chip = event.currentTarget;
+            const rect = chip.getBoundingClientRect();
+
+            splitGhostEl = chip.cloneNode(true);
+            splitGhostEl.classList.add('split-unit-chip-ghost');
+            splitGhostEl.style.width = rect.width + 'px';
+            splitGhostEl.style.left = '0px';
+            splitGhostEl.style.top = '0px';
+            document.body.appendChild(splitGhostEl);
+            splitPositionGhost(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+            chip.classList.add('split-unit-chip-lifted');
+            splitGetOverlay().classList.add('is-visible');
+
+            splitScrollParent = splitFindScrollParent(chip);
+            splitAutoScrollSpeed = 0;
+            cancelAnimationFrame(splitAutoScrollRAF);
+            splitAutoScrollRAF = requestAnimationFrame(splitAutoScrollTick);
+        }
+
+        function splitTouchMove(event) {
+            if (splitDragProductId === null) return;
+            event.preventDefault();
+            const touch = event.touches[0];
+
+            splitPositionGhost(touch.clientX, touch.clientY);
+            splitUpdateAutoScroll(touch.clientY);
+
+            const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.split-group') || null;
+            if (target !== splitCurrentDropTarget) {
+                if (splitCurrentDropTarget) splitCurrentDropTarget.classList.remove('is-touch-drop-target');
+                if (target) target.classList.add('is-touch-drop-target');
+                splitCurrentDropTarget = target;
+            }
+        }
+
+        function splitTouchEnd(event, wire) {
+            if (splitDragProductId === null) return;
+
+            cancelAnimationFrame(splitAutoScrollRAF);
+            splitAutoScrollSpeed = 0;
+            splitScrollParent = null;
+
+            if (splitCurrentDropTarget) {
+                wire.assignUnitToGroup(parseInt(splitCurrentDropTarget.dataset.groupIndex), splitDragProductId);
+                splitCurrentDropTarget.classList.remove('is-touch-drop-target');
+                splitCurrentDropTarget = null;
+            }
+
+            if (splitGhostEl) {
+                splitGhostEl.remove();
+                splitGhostEl = null;
+            }
+            document.querySelectorAll('.split-unit-chip-lifted').forEach(el => el.classList.remove('split-unit-chip-lifted'));
+            if (splitOverlayEl) splitOverlayEl.classList.remove('is-visible');
+
+            splitDragProductId = null;
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const myOrdersKey = 'pos_my_orders_{{ $table->qr_token }}';
