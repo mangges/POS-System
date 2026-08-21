@@ -38,7 +38,7 @@
                             <span class="payment-method-label">Tunai</span>
                         </label>
                         @endif
-                        @if(in_array('qris', $this->activeMethods))
+                        @if(in_array('qris', $this->activeMethods) && ! $splitMode)
                         <label class="payment-method-option {{ $paymentMethod === 'qris' ? 'active' : '' }}">
                             <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="qris" class="hidden-radio">
                             <span class="payment-method-label">QRIS</span>

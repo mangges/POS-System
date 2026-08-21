@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
+use Illuminate\Support\Facades\DB;
 
 class LandingPage extends Component
 {
@@ -81,6 +82,10 @@ class LandingPage extends Component
     {
         if ($this->splitMode) {
             if (! $this->canCheckoutSplit()) return;
+
+            if ($this->paymentMethod === 'qris') {
+                $this->paymentMethod = collect($this->activeMethods)->first(fn ($m) => $m !== 'qris') ?? 'cash';
+            }
         } elseif (empty($this->cart)) {
             return;
         }
@@ -197,19 +202,21 @@ class LandingPage extends Component
 
         $orderNumbers = [];
 
-        foreach ($this->splitGroups as $index => $group) {
-            $order = $this->orderService->processOrder(
-                $this->buildSplitCartItems($index),
-                $guestSession->qrCode->table_id,
-                $group['name'],
-                $this->orderType,
-                null,
-                $this->paymentMethod
-            );
+        DB::transaction(function () use ($guestSession, &$orderNumbers) {
+            foreach ($this->splitGroups as $index => $group) {
+                $order = $this->orderService->processOrder(
+                    $this->buildSplitCartItems($index),
+                    $guestSession->qrCode->table_id,
+                    $group['name'],
+                    $this->orderType,
+                    null,
+                    $this->paymentMethod
+                );
 
-            $orderNumbers[] = $order->order_number;
-            $this->dispatch('order-placed', orderId: $order->id);
-        }
+                $orderNumbers[] = $order->order_number;
+                $this->dispatch('order-placed', orderId: $order->id);
+            }
+        });
 
         $this->splitOrderNumbers = $orderNumbers;
         $this->orderSubmitted = true;
