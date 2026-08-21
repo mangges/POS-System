@@ -1,22 +1,20 @@
 <div class="split-bill-panel">
     <div class="split-bill-pool">
         <h4>Belum Dibagi</h4>
-        @forelse($cart as $item)
-            @php $left = $this->unassignedQty($item['id']); @endphp
-            @if($left > 0)
-                <div class="split-pool-row">
-                    <span class="split-pool-name">{{ $item['name'] }}</span>
-                    <div class="split-pool-chips">
-                        @for($i = 0; $i < $left; $i++)
-                            <span class="split-unit-chip"
-                                draggable="true"
-                                x-on:dragstart="$event.dataTransfer.setData('text/plain', '{{ $item['id'] }}')">
-                                Rp {{ number_format($item['price'], 0, ',', '.') }}
-                            </span>
-                        @endfor
-                    </div>
+        @php $poolItems = collect($cart)->filter(fn($item) => $this->unassignedQty($item['id']) > 0); @endphp
+        @forelse($poolItems as $item)
+            <div class="split-pool-row">
+                <span class="split-pool-name">{{ $item['name'] }}</span>
+                <div class="split-pool-chips">
+                    @for($i = 0; $i < $this->unassignedQty($item['id']); $i++)
+                        <span class="split-unit-chip"
+                            draggable="true"
+                            x-on:dragstart="$event.dataTransfer.setData('text/plain', '{{ $item['id'] }}')">
+                            Rp {{ number_format($item['price'], 0, ',', '.') }}
+                        </span>
+                    @endfor
                 </div>
-            @endif
+            </div>
         @empty
             <p class="split-pool-empty">Semua item sudah dibagi.</p>
         @endforelse
