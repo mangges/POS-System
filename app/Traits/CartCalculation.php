@@ -64,8 +64,10 @@ trait CartCalculation
     {
         if (isset($this->cart[$key])) {
             if ($this->cart[$key]['qty'] > 1) {
+                $productId = $this->cart[$key]['id'];
                 $this->cart[$key]['qty']--;
                 $this->syncCart($key);
+                $this->trimAssignmentsForProduct($productId);
             } else {
                 $this->removeFromCart($key);
             }
@@ -172,7 +174,7 @@ trait CartCalculation
 
     public function unassignedQty(int $productId): int
     {
-        $cartItem = collect($this->cart)->firstWhere('id', $productId);
+        $cartItem = $this->findCartItem($productId);
 
         if (! $cartItem) {
             return 0;
@@ -196,7 +198,7 @@ trait CartCalculation
         $total = 0.0;
 
         foreach ($this->splitGroups[$groupIndex]['assignments'] as $productId => $qty) {
-            $cartItem = collect($this->cart)->firstWhere('id', $productId);
+            $cartItem = $this->findCartItem($productId);
 
             if ($cartItem) {
                 $total += $cartItem['price'] * $qty;
@@ -236,7 +238,7 @@ trait CartCalculation
         $items = [];
 
         foreach ($this->splitGroups[$groupIndex]['assignments'] as $productId => $qty) {
-            $cartItem = collect($this->cart)->firstWhere('id', $productId);
+            $cartItem = $this->findCartItem($productId);
 
             if (! $cartItem || $qty <= 0) {
                 continue;
@@ -259,6 +261,53 @@ trait CartCalculation
         foreach ($this->splitGroups as $index => $group) {
             unset($this->splitGroups[$index]['assignments'][$productId]);
         }
+    }
+
+    private function trimAssignmentsForProduct(int $productId): void
+    {
+        $cartItem = $this->findCartItem($productId);
+
+        if (! $cartItem) {
+            return;
+        }
+
+        $newQty = $cartItem['qty'];
+        $assigned = 0;
+
+        foreach ($this->splitGroups as $group) {
+            $assigned += $group['assignments'][$productId] ?? 0;
+        }
+
+        if ($assigned <= $newQty) {
+            return;
+        }
+
+        $toRemove = $assigned - $newQty;
+
+        foreach ($this->splitGroups as $index => $group) {
+            if ($toRemove <= 0) {
+                break;
+            }
+
+            if (isset($this->splitGroups[$index]['assignments'][$productId])) {
+                $currentAssignment = $this->splitGroups[$index]['assignments'][$productId];
+                $removeFromThisGroup = min($currentAssignment, $toRemove);
+                $remaining = $currentAssignment - $removeFromThisGroup;
+
+                if ($remaining <= 0) {
+                    unset($this->splitGroups[$index]['assignments'][$productId]);
+                } else {
+                    $this->splitGroups[$index]['assignments'][$productId] = $remaining;
+                }
+
+                $toRemove -= $removeFromThisGroup;
+            }
+        }
+    }
+
+    private function findCartItem(int $productId): ?array
+    {
+        return collect($this->cart)->firstWhere('id', $productId);
     }
 
     protected function resolveProduct(int $productId)

@@ -170,4 +170,59 @@ class CashierSplitBillTest extends TestCase
         $this->assertSame('Budi', $component->instance()->splitGroups[0]['name']);
         $this->assertSame('Citra', $component->instance()->splitGroups[1]['name']);
     }
+
+    public function test_build_split_cart_items_returns_correct_array_shape(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product1 = $this->createProduct('Nasi Goreng', 20000);
+        $product2 = $this->createProduct('Es Teh', 5000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product1->id)
+            ->call('addToCart', $product2->id)
+            ->call('incrementQuantity', 0) // Nasi Goreng qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('assignUnitToGroup', 0, $product1->id)
+            ->call('assignUnitToGroup', 0, $product1->id)
+            ->call('assignUnitToGroup', 0, $product2->id);
+
+        $items = $component->instance()->buildSplitCartItems(0);
+
+        $this->assertCount(2, $items);
+        $this->assertSame($product1->id, $items[0]['id']);
+        $this->assertSame('Nasi Goreng', $items[0]['name']);
+        $this->assertEquals(20000, (int)$items[0]['price']);
+        $this->assertSame(2, $items[0]['qty']);
+        $this->assertEquals(40000, (int)$items[0]['subtotal']);
+        $this->assertSame($product2->id, $items[1]['id']);
+        $this->assertSame('Es Teh', $items[1]['name']);
+        $this->assertEquals(5000, (int)$items[1]['price']);
+        $this->assertSame(1, $items[1]['qty']);
+        $this->assertEquals(5000, (int)$items[1]['subtotal']);
+    }
+
+    public function test_qty_decrease_without_removal_trims_stale_assignments(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Es Teh', 5000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('incrementQuantity', 0) // qty 3
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 0, $product->id) // all 3 units to group 0
+            ->call('decrementQuantity', 0) // qty back to 2, should trim assignments to 2
+            ->call('decrementQuantity', 0); // qty back to 1, should trim assignments to 1
+
+        $this->assertSame(1, $component->instance()->splitGroups[0]['assignments'][$product->id]);
+        $this->assertSame(5000.0, $component->instance()->splitGroupSubtotal(0));
+        $items = $component->instance()->buildSplitCartItems(0);
+        $this->assertCount(1, $items);
+        $this->assertSame(1, $items[0]['qty']);
+        $this->assertEquals(5000, (int)$items[0]['subtotal']);
+    }
 }
