@@ -50,6 +50,15 @@
     </template>
 </div>
 
+{{--
+    Plain <script> tags re-run on every wire:navigate (Livewire clones and
+    re-inserts them — see prepNewBodyScriptTagsToRun in livewire.js), so an
+    unguarded Livewire.on('notify') here would stack a new listener per
+    navigation and fire the toast multiple times per event. Register the
+    listener once via a window flag, and always push through whichever
+    instance is currently live (updated on every init()) so old, detached
+    instances from prior navigations are never targeted.
+--}}
 <script>
     function posNotifyBoard() {
         return {
@@ -58,13 +67,18 @@
             _timers: {},
 
             init() {
+                window.__posNotifyBoard = this;
+
                 @if (session()->has('message'))
                     this.push(@js(session('message')), @js(session('type', 'success')));
                 @endif
 
-                Livewire.on('notify', (event) => {
-                    this.push(event.message, event.type ?? 'info');
-                });
+                if (!window.__posNotifyListenerRegistered) {
+                    window.__posNotifyListenerRegistered = true;
+                    Livewire.on('notify', (event) => {
+                        window.__posNotifyBoard?.push(event.message, event.type ?? 'info');
+                    });
+                }
             },
 
             push(message, type = 'info') {

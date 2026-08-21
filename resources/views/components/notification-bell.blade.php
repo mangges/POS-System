@@ -130,13 +130,16 @@
     .pos-bell-item-time { color: var(--color-text-muted, #74777d); font-size: 0.72rem; }
 </style>
 
+{{--
+    @script (not a plain <script> tag) because this page is reached via
+    wire:navigate (see the receipt "back to menu" link) — Livewire's SPA
+    navigation never fires a fresh alpine:init, so a plain <script> here
+    would only ever run once, on the very first hard page load, and never
+    rehydrate the store on the way back. @script re-runs on every navigate.
+--}}
+@script
 <script>
-    document.addEventListener('alpine:init', () => {
-        if (window.__posNotifBellStoreRegistered) {
-            return;
-        }
-        window.__posNotifBellStoreRegistered = true;
-
+    if (!Alpine.store('notifBell')) {
         const storageKey = 'pos_bell_items_{{ $qrToken }}';
         let saved = [];
         try {
@@ -164,5 +167,6 @@
             store.unread++;
             sessionStorage.setItem(storageKey, JSON.stringify(store.items));
         });
-    });
+    }
 </script>
+@endscript
