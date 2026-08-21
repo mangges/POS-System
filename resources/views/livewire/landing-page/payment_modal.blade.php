@@ -12,10 +12,22 @@
             </div>
 
             <div class="payment-modal-body">
+                @unless($splitMode)
                 <div class="form-field">
                     <label for="customerName" class="form-label">Nama Anda</label>
                     <input type="text" id="customerName" wire:model.live.debounce.300ms="customerName" placeholder="Masukkan nama" class="form-input" autocomplete="off">
                 </div>
+                @else
+                <div class="form-field">
+                    <span class="form-label">Pesanan akan dipecah jadi:</span>
+                    @foreach($splitGroups as $group)
+                        <div class="order-summary-row">
+                            <span>{{ $group['name'] }}</span>
+                            <span>Rp {{ number_format($this->splitGroupSubtotal($loop->index), 0, ',', '.') }}</span>
+                        </div>
+                    @endforeach
+                </div>
+                @endunless
 
                 <div class="form-field">
                     <span class="form-label">Metode Pembayaran</span>
@@ -74,9 +86,15 @@
             </div>
 
             <div class="payment-modal-footer">
+                @unless($splitMode)
                 <button type="button" wire:click="checkout" class="payment-submit-btn" @if (empty($customerName)) disabled @endif>
                     Konfirmasi &amp; Pesan
                 </button>
+                @else
+                <button type="button" wire:click="checkoutSplit" class="payment-submit-btn" @if (! $this->canCheckoutSplit()) disabled @endif>
+                    Konfirmasi &amp; Pesan Semua
+                </button>
+                @endunless
             </div>
         @else
             @php
@@ -89,7 +107,15 @@
                     </svg>
                 </div>
                 <h2 class="payment-success-title">Pesanan Diterima</h2>
+                @if(empty($splitOrderNumbers))
                 <p class="payment-success-order">{{ $lastOrderNumber }}</p>
+                @else
+                <div class="payment-success-split-list">
+                    @foreach($splitOrderNumbers as $orderNumber)
+                        <p class="payment-success-order">{{ $orderNumber }}</p>
+                    @endforeach
+                </div>
+                @endif
                 <p class="payment-success-message">
                     @if ($paymentMethod === 'cash')
                         Kasir kami akan segera membawakan struk pembayaran ke meja Anda.

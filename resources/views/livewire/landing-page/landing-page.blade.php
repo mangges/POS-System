@@ -340,52 +340,56 @@
                     </div>
                 @else
                     <div class="cart-items">
-                        @foreach ($cart as $key => $item)
-                            <div class="cart-item">
-                                @if ($item['image'])
-                                    <img src="{{ Storage::url($item['image']) }}" alt="{{ $item['name'] }}"
-                                        class="cart-item-img">
-                                @else
-                                    <div class="cart-item-img"
-                                        style="display:flex; align-items:center; justify-content:center; color:#ccc;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px;"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                @endif
+                        @if($splitMode)
+                            @include('livewire.landing-page.split_bill_panel')
+                        @else
+                            @foreach ($cart as $key => $item)
+                                <div class="cart-item">
+                                    @if ($item['image'])
+                                        <img src="{{ Storage::url($item['image']) }}" alt="{{ $item['name'] }}"
+                                            class="cart-item-img">
+                                    @else
+                                        <div class="cart-item-img"
+                                            style="display:flex; align-items:center; justify-content:center; color:#ccc;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px;"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    @endif
 
-                                <div class="cart-item-body">
-                                    <h3 class="cart-item-name">{{ $item['name'] }}</h3>
-                                    <span class="cart-item-price">Rp
-                                        {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</span>
-                                </div>
-                                <div class="cart-item-actions">
-                                    <div class="quantity-control">
-                                        <button wire:click="decrementQuantity({{ $key }})"
-                                            class="qty-btn">-</button>
-                                        <span class="qty-value">{{ $item['qty'] }}</span>
-                                        <button wire:click="incrementQuantity({{ $key }})"
-                                            class="qty-btn">+</button>
+                                    <div class="cart-item-body">
+                                        <h3 class="cart-item-name">{{ $item['name'] }}</h3>
+                                        <span class="cart-item-price">Rp
+                                            {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</span>
                                     </div>
-                                    <button wire:click="removeFromCart({{ $key }})" class="remove-btn"
-                                        aria-label="Hapus">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M3 6h18"></path>
-                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                            <line x1="10" y1="11" x2="10" y2="17">
-                                            </line>
-                                            <line x1="14" y1="11" x2="14" y2="17">
-                                            </line>
-                                        </svg>
-                                    </button>
+                                    <div class="cart-item-actions">
+                                        <div class="quantity-control">
+                                            <button wire:click="decrementQuantity({{ $key }})"
+                                                class="qty-btn">-</button>
+                                            <span class="qty-value">{{ $item['qty'] }}</span>
+                                            <button wire:click="incrementQuantity({{ $key }})"
+                                                class="qty-btn">+</button>
+                                        </div>
+                                        <button wire:click="removeFromCart({{ $key }})" class="remove-btn"
+                                            aria-label="Hapus">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 6h18"></path>
+                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                                <line x1="10" y1="11" x2="10" y2="17">
+                                                </line>
+                                                <line x1="14" y1="11" x2="14" y2="17">
+                                                </line>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        @endif
                     </div>
                 @endif
             </div>
@@ -406,7 +410,13 @@
                             <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                         </div>
                     </div>
-                    <a wire:click="openPaymentModal" @click="cartOpen = false" class="checkout-btn">Pesan Sekarang</a>
+                    <button type="button" wire:click="toggleSplitMode" class="split-toggle-btn">
+                        {{ $splitMode ? 'Batal Split' : 'Split Bill' }}
+                    </button>
+                    <a wire:click="openPaymentModal" @click="cartOpen = false" class="checkout-btn"
+                        @if($splitMode && ! $this->canCheckoutSplit()) style="pointer-events:none;opacity:.5;" @endif>
+                        {{ $splitMode ? 'Pesan Semua (' . count($splitGroups) . ')' : 'Pesan Sekarang' }}
+                    </a>
                     @if ($table)
                         <p class="cart-table-info">Pesanan akan diantar ke <strong>{{ $table->name }}</strong></p>
                     @endif

@@ -1583,3 +1583,97 @@ h1, h2, h3 {
     .payment-method-option { padding: 0.55rem 0.3rem; }
     .payment-method-label { font-size: 0.78rem; }
 }
+
+.split-bill-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.split-bill-pool {
+    border: 1px dashed var(--color-border);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.split-pool-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.split-pool-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.split-unit-chip {
+    cursor: grab;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.split-bill-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.split-group {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 8px;
+    min-height: 48px;
+}
+
+.split-group-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.split-group-item {
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 0;
+}
+
+.split-group-empty,
+.split-pool-empty {
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
+.split-group-subtotal {
+    text-align: right;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.split-add-group {
+    display: flex;
+    gap: 6px;
+}
+
+.split-add-group input {
+    flex: 1;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+
+.split-toggle-btn {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+    margin-bottom: 8px;
+}
