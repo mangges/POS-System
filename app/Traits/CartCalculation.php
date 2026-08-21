@@ -12,6 +12,8 @@ trait CartCalculation
     public float $taxRate = 0.11;
     public float $discount = 0;
     public ?int $cashReceived = null;
+    public bool $splitMode = false;
+    public array $splitGroups = [];
     protected CartCalculatorService $cartCalculatorService;
 
     public function bootCartCalculation(CartCalculatorService $cartCalculatorService)
@@ -72,8 +74,14 @@ trait CartCalculation
 
     public function removeFromCart($index)
     {
+        $productId = $this->cart[$index]['id'] ?? null;
+
         unset($this->cart[$index]);
         $this->cart = array_values($this->cart); // re-index
+
+        if ($productId !== null) {
+            $this->clearSplitAssignmentsForProduct($productId);
+        }
     }
     
     #[Computed]
@@ -109,6 +117,148 @@ trait CartCalculation
     public function syncCart($key)
     {
         return $this->cartCalculatorService->syncCart($this->cart, $key);
+    }
+
+    public function toggleSplitMode(): void
+    {
+        $this->splitMode = ! $this->splitMode;
+
+        if (! $this->splitMode) {
+            $this->splitGroups = [];
+        }
+    }
+
+    public function addSplitGroup(string $name): void
+    {
+        $name = trim($name);
+
+        if ($name === '') {
+            return;
+        }
+
+        $this->splitGroups[] = ['name' => $name, 'assignments' => []];
+    }
+
+    public function removeSplitGroup(int $groupIndex): void
+    {
+        unset($this->splitGroups[$groupIndex]);
+        $this->splitGroups = array_values($this->splitGroups);
+    }
+
+    public function assignUnitToGroup(int $groupIndex, int $productId): void
+    {
+        if (! isset($this->splitGroups[$groupIndex]) || $this->unassignedQty($productId) <= 0) {
+            return;
+        }
+
+        $current = $this->splitGroups[$groupIndex]['assignments'][$productId] ?? 0;
+        $this->splitGroups[$groupIndex]['assignments'][$productId] = $current + 1;
+    }
+
+    public function unassignUnitFromGroup(int $groupIndex, int $productId): void
+    {
+        if (! isset($this->splitGroups[$groupIndex]['assignments'][$productId])) {
+            return;
+        }
+
+        $remaining = $this->splitGroups[$groupIndex]['assignments'][$productId] - 1;
+
+        if ($remaining <= 0) {
+            unset($this->splitGroups[$groupIndex]['assignments'][$productId]);
+        } else {
+            $this->splitGroups[$groupIndex]['assignments'][$productId] = $remaining;
+        }
+    }
+
+    public function unassignedQty(int $productId): int
+    {
+        $cartItem = collect($this->cart)->firstWhere('id', $productId);
+
+        if (! $cartItem) {
+            return 0;
+        }
+
+        $assigned = 0;
+
+        foreach ($this->splitGroups as $group) {
+            $assigned += $group['assignments'][$productId] ?? 0;
+        }
+
+        return max(0, $cartItem['qty'] - $assigned);
+    }
+
+    public function splitGroupSubtotal(int $groupIndex): float
+    {
+        if (! isset($this->splitGroups[$groupIndex])) {
+            return 0.0;
+        }
+
+        $total = 0.0;
+
+        foreach ($this->splitGroups[$groupIndex]['assignments'] as $productId => $qty) {
+            $cartItem = collect($this->cart)->firstWhere('id', $productId);
+
+            if ($cartItem) {
+                $total += $cartItem['price'] * $qty;
+            }
+        }
+
+        return $total;
+    }
+
+    public function canCheckoutSplit(): bool
+    {
+        if (empty($this->cart) || count($this->splitGroups) < 2) {
+            return false;
+        }
+
+        foreach ($this->splitGroups as $group) {
+            if (trim($group['name']) === '' || empty($group['assignments'])) {
+                return false;
+            }
+        }
+
+        foreach ($this->cart as $item) {
+            if ($this->unassignedQty($item['id']) > 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function buildSplitCartItems(int $groupIndex): array
+    {
+        if (! isset($this->splitGroups[$groupIndex])) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($this->splitGroups[$groupIndex]['assignments'] as $productId => $qty) {
+            $cartItem = collect($this->cart)->firstWhere('id', $productId);
+
+            if (! $cartItem || $qty <= 0) {
+                continue;
+            }
+
+            $items[] = [
+                'id' => $cartItem['id'],
+                'name' => $cartItem['name'],
+                'price' => $cartItem['price'],
+                'qty' => $qty,
+                'subtotal' => $cartItem['price'] * $qty,
+            ];
+        }
+
+        return $items;
+    }
+
+    private function clearSplitAssignmentsForProduct(int $productId): void
+    {
+        foreach ($this->splitGroups as $index => $group) {
+            unset($this->splitGroups[$index]['assignments'][$productId]);
+        }
     }
 
     protected function resolveProduct(int $productId)
