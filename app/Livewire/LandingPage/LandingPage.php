@@ -35,6 +35,7 @@ class LandingPage extends Component
     public bool $orderSubmitted = false;
     public ?string $lastOrderNumber = null;
     public ?int $lastOrderTotal = null;
+    public array $splitOrderNumbers = [];
 
     public ?int $viewingOrderId = null;
 
@@ -78,7 +79,11 @@ class LandingPage extends Component
 
     public function openPaymentModal()
     {
-        if (empty($this->cart)) return;
+        if ($this->splitMode) {
+            if (! $this->canCheckoutSplit()) return;
+        } elseif (empty($this->cart)) {
+            return;
+        }
 
         $this->showPaymentModal = true;
     }
@@ -88,7 +93,7 @@ class LandingPage extends Component
         $this->showPaymentModal = false;
 
         if ($this->orderSubmitted) {
-            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId']);
+            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId', 'splitOrderNumbers']);
             $this->ensureActivePaymentMethod();
         }
     }
@@ -176,6 +181,39 @@ class LandingPage extends Component
         $this->orderSubmitted = true;
         $this->reset('cart');
         $this->dispatch('order-placed', orderId: $order->id);
+    }
+
+    public function checkoutSplit(): void
+    {
+        if (! $this->canCheckoutSplit()) return;
+
+        $guestSession = GuestSession::findOrFail($this->guestSessionId);
+
+        if ($guestSession->isExpired()) {
+            abort(410, 'Session expired. Please scan the QR code again.');
+        }
+
+        $this->ensureActivePaymentMethod();
+
+        $orderNumbers = [];
+
+        foreach ($this->splitGroups as $index => $group) {
+            $order = $this->orderService->processOrder(
+                $this->buildSplitCartItems($index),
+                $guestSession->qrCode->table_id,
+                $group['name'],
+                $this->orderType,
+                null,
+                $this->paymentMethod
+            );
+
+            $orderNumbers[] = $order->order_number;
+            $this->dispatch('order-placed', orderId: $order->id);
+        }
+
+        $this->splitOrderNumbers = $orderNumbers;
+        $this->orderSubmitted = true;
+        $this->reset(['cart', 'splitGroups', 'splitMode']);
     }
 
     public function render()
