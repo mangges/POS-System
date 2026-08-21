@@ -225,4 +225,70 @@ class CashierSplitBillTest extends TestCase
         $this->assertSame(1, $items[0]['qty']);
         $this->assertEquals(5000, (int)$items[0]['subtotal']);
     }
+
+    public function test_checkout_split_creates_one_order_per_group(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->assertSet('cart', [])
+            ->assertSet('splitMode', false)
+            ->assertSet('splitGroups', []);
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+        $budi = \App\Models\Order::where('customer_name', 'Budi')->first();
+
+        $this->assertNotNull($andi);
+        $this->assertNotNull($budi);
+        $this->assertSame(1, $andi->items()->count());
+        $this->assertSame(20000.0, (float) $andi->items()->first()->subtotal);
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Pending, $andi->status);
+        $this->assertNull($andi->table_id);
+        $this->assertNotNull($andi->payment);
+        $this->assertSame(\App\Enum\Orders\PaymentStatus::Pending, $andi->payment->status);
+    }
+
+    public function test_checkout_split_does_nothing_when_not_ready(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('addSplitGroup', 'Andi') // only 1 group, still unassigned
+            ->call('checkoutSplit');
+
+        $this->assertSame(0, \App\Models\Order::count());
+    }
+
+    public function test_a_split_order_can_be_paid_from_the_drafts_list(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('checkoutSplit');
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+
+        Livewire::test(Cashier::class)
+            ->call('finalizeTableOrder', $andi->id)
+            ->assertSet('showPaymentModal', true)
+            ->set('cashReceived', 25000)
+            ->call('finalizeOrder');
+
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $andi->fresh()->status);
+    }
 }

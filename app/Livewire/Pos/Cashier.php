@@ -121,7 +121,7 @@ class Cashier extends Component
 
     public function voidCart(): void
     {
-        $this->reset('cart');
+        $this->reset('cart', 'splitGroups', 'splitMode');
     }
 
     public function saveDraft()
@@ -310,9 +310,56 @@ class Cashier extends Component
         if (empty($this->cart) || empty($this->customerName)) return;
 
         $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
-        
+
         $this->currentOrderId = $order->id;
         $this->showPaymentModal = true;
+    }
+
+    public function canCheckoutSplit(): bool
+    {
+        if (empty($this->cart) || count($this->splitGroups) < 2) {
+            return false;
+        }
+
+        foreach ($this->cart as $item) {
+            if ($this->unassignedQty($item['id']) > 0) {
+                return false;
+            }
+        }
+
+        $hasAnyAssignments = false;
+        foreach ($this->splitGroups as $group) {
+            if (!empty($group['assignments'])) {
+                $hasAnyAssignments = true;
+                break;
+            }
+        }
+
+        return $hasAnyAssignments;
+    }
+
+    public function checkoutSplit()
+    {
+        if (! $this->canCheckoutSplit()) return;
+
+        foreach ($this->splitGroups as $index => $group) {
+            $items = $this->buildSplitCartItems($index);
+            if (!empty($items)) {
+                $this->orderService->processOrder(
+                    $items,
+                    null,
+                    $group['name'],
+                    $this->orderType,
+                    null
+                );
+            }
+        }
+
+        $this->reset(['cart', 'splitGroups', 'splitMode', 'customerName']);
+
+        return redirect()->route('filament.admin.pages.cashier')
+            ->with('message', 'Split bill berhasil dibuat. Bayar tiap pesanan dari menu Draft.')
+            ->with('type', 'success');
     }
 
     public function finalizeOrder()
