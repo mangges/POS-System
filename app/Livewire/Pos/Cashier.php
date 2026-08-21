@@ -315,44 +315,18 @@ class Cashier extends Component
         $this->showPaymentModal = true;
     }
 
-    public function canCheckoutSplit(): bool
-    {
-        if (empty($this->cart) || count($this->splitGroups) < 2) {
-            return false;
-        }
-
-        foreach ($this->cart as $item) {
-            if ($this->unassignedQty($item['id']) > 0) {
-                return false;
-            }
-        }
-
-        $hasAnyAssignments = false;
-        foreach ($this->splitGroups as $group) {
-            if (!empty($group['assignments'])) {
-                $hasAnyAssignments = true;
-                break;
-            }
-        }
-
-        return $hasAnyAssignments;
-    }
-
     public function checkoutSplit()
     {
         if (! $this->canCheckoutSplit()) return;
 
         foreach ($this->splitGroups as $index => $group) {
-            $items = $this->buildSplitCartItems($index);
-            if (!empty($items)) {
-                $this->orderService->processOrder(
-                    $items,
-                    null,
-                    $group['name'],
-                    $this->orderType,
-                    null
-                );
-            }
+            $this->orderService->processOrder(
+                $this->buildSplitCartItems($index),
+                null,
+                $group['name'],
+                $this->orderType,
+                null
+            );
         }
 
         $this->reset(['cart', 'splitGroups', 'splitMode', 'customerName']);

@@ -276,9 +276,11 @@ class CashierSplitBillTest extends TestCase
 
         Livewire::test(Cashier::class)
             ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
             ->call('addSplitGroup', 'Andi')
             ->call('addSplitGroup', 'Budi')
             ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
             ->call('checkoutSplit');
 
         $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
