@@ -239,9 +239,7 @@ class CashierSplitBillTest extends TestCase
             ->call('assignUnitToGroup', 0, $product->id)
             ->call('assignUnitToGroup', 1, $product->id)
             ->call('checkoutSplit')
-            ->assertSet('cart', [])
-            ->assertSet('splitMode', false)
-            ->assertSet('splitGroups', []);
+            ->assertSet('showPaymentModal', true);
 
         $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
         $budi = \App\Models\Order::where('customer_name', 'Budi')->first();
@@ -267,6 +265,32 @@ class CashierSplitBillTest extends TestCase
             ->call('checkoutSplit');
 
         $this->assertSame(0, \App\Models\Order::count());
+    }
+
+    public function test_checkout_split_opens_payment_modal_on_first_tab(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->assertSet('showPaymentModal', true)
+            ->assertSet('activeSplitIndex', 0);
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+        $budi = \App\Models\Order::where('customer_name', 'Budi')->first();
+
+        $component->assertSet('currentOrderId', $andi->id);
+        $this->assertSame($andi->id, $component->instance()->splitGroups[0]['order_id']);
+        $this->assertFalse($component->instance()->splitGroups[0]['paid']);
+        $this->assertSame($budi->id, $component->instance()->splitGroups[1]['order_id']);
+        $this->assertFalse($component->instance()->splitGroups[1]['paid']);
     }
 
     public function test_a_split_order_can_be_paid_from_the_drafts_list(): void
@@ -333,20 +357,21 @@ class CashierSplitBillTest extends TestCase
         $original = \App\Models\Order::where('customer_name', 'Meja 5')->first();
         $this->assertNotNull($original);
 
-        Livewire::test(Cashier::class)
+        $component = Livewire::test(Cashier::class)
             ->call('loadDraft', $original->id)
             ->call('addSplitGroup', 'Andi')
             ->call('addSplitGroup', 'Budi')
             ->call('assignUnitToGroup', 0, $product->id)
             ->call('assignUnitToGroup', 1, $product->id)
             ->call('checkoutSplit')
-            ->assertSet('currentOrderId', null)
             ->assertSet('activeDraft', null);
 
         $this->assertSame(2, \App\Models\Order::count());
         $this->assertNull(\App\Models\Order::find($original->id));
-        $this->assertNotNull(\App\Models\Order::where('customer_name', 'Andi')->first());
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+        $this->assertNotNull($andi);
         $this->assertNotNull(\App\Models\Order::where('customer_name', 'Budi')->first());
+        $component->assertSet('currentOrderId', $andi->id);
     }
 
     public function test_split_groups_cannot_be_set_directly_from_the_client(): void

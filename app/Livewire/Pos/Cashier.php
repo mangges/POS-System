@@ -35,7 +35,8 @@ class Cashier extends Component
     public string $orderType = 'dine-in';
 
     public $activeDraft = null;
-    
+    public ?int $activeSplitIndex = null;
+
     public $showPaymentModal = false;
     public $showDraftsModal = false;
     public $showFromTableModal = false;
@@ -315,7 +316,7 @@ class Cashier extends Component
         $this->showPaymentModal = true;
     }
 
-    public function checkoutSplit()
+    public function checkoutSplit(): void
     {
         if (! $this->canCheckoutSplit()) return;
 
@@ -325,21 +326,27 @@ class Cashier extends Component
 
         DB::transaction(function () {
             foreach ($this->splitGroups as $index => $group) {
-                $this->orderService->processOrder(
+                $order = $this->orderService->processOrder(
                     $this->buildSplitCartItems($index),
                     null,
                     $group['name'],
                     $this->orderType,
                     null
                 );
+
+                $this->splitGroups[$index]['order_id'] = $order->id;
+                $this->splitGroups[$index]['paid'] = false;
             }
         });
 
-        $this->reset(['cart', 'splitGroups', 'splitMode', 'customerName', 'activeDraft', 'currentOrderId']);
-
-        return redirect()->route('filament.admin.pages.cashier')
-            ->with('message', 'Split bill berhasil dibuat. Bayar tiap pesanan dari menu Draft.')
-            ->with('type', 'success');
+        $this->activeDraft = null;
+        $this->activeSplitIndex = 0;
+        $this->currentOrderId = $this->splitGroups[0]['order_id'];
+        $this->paymentMethod = 'cash';
+        $this->paymentConfirmed = false;
+        $this->cashReceived = null;
+        $this->ensureActivePaymentMethod();
+        $this->showPaymentModal = true;
     }
 
     public function finalizeOrder()
