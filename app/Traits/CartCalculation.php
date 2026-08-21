@@ -4,15 +4,19 @@ namespace App\Traits;
 
 use App\Models\Product;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use App\Services\Cart\CartCalculatorService;
 
 trait CartCalculation
 {
+    #[Locked]
     public array $cart = [];
     public float $taxRate = 0.11;
     public float $discount = 0;
     public ?int $cashReceived = null;
+    #[Locked]
     public bool $splitMode = false;
+    #[Locked]
     public array $splitGroups = [];
     protected CartCalculatorService $cartCalculatorService;
 

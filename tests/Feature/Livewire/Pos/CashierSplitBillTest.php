@@ -293,4 +293,77 @@ class CashierSplitBillTest extends TestCase
 
         $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $andi->fresh()->status);
     }
+
+    public function test_a_finalized_split_order_renders_its_receipt(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit');
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+
+        Livewire::test(Cashier::class)
+            ->call('finalizeTableOrder', $andi->id)
+            ->set('cashReceived', 25000)
+            ->call('finalizeOrder');
+
+        $this->assertNotNull($andi->fresh()->token);
+        $this->get(route('receipt.show', ['token' => $andi->fresh()->token]))->assertOk();
+    }
+
+    public function test_splitting_a_loaded_draft_replaces_it_instead_of_duplicating_it(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->set('customerName', 'Meja 5')
+            ->call('saveDraft');
+
+        $original = \App\Models\Order::where('customer_name', 'Meja 5')->first();
+        $this->assertNotNull($original);
+
+        Livewire::test(Cashier::class)
+            ->call('loadDraft', $original->id)
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->assertSet('currentOrderId', null)
+            ->assertSet('activeDraft', null);
+
+        $this->assertSame(2, \App\Models\Order::count());
+        $this->assertNull(\App\Models\Order::find($original->id));
+        $this->assertNotNull(\App\Models\Order::where('customer_name', 'Andi')->first());
+        $this->assertNotNull(\App\Models\Order::where('customer_name', 'Budi')->first());
+    }
+
+    public function test_split_groups_cannot_be_set_directly_from_the_client(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi');
+
+        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+
+        $component->set('splitGroups', [
+            ['name' => 'Andi', 'assignments' => [$product->id => 99]],
+            ['name' => 'Budi', 'assignments' => [$product->id => 99]],
+        ]);
+    }
 }

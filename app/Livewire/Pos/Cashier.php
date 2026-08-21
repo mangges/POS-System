@@ -319,17 +319,23 @@ class Cashier extends Component
     {
         if (! $this->canCheckoutSplit()) return;
 
-        foreach ($this->splitGroups as $index => $group) {
-            $this->orderService->processOrder(
-                $this->buildSplitCartItems($index),
-                null,
-                $group['name'],
-                $this->orderType,
-                null
-            );
+        if ($this->currentOrderId) {
+            $this->deleteDraft($this->currentOrderId);
         }
 
-        $this->reset(['cart', 'splitGroups', 'splitMode', 'customerName']);
+        DB::transaction(function () {
+            foreach ($this->splitGroups as $index => $group) {
+                $this->orderService->processOrder(
+                    $this->buildSplitCartItems($index),
+                    null,
+                    $group['name'],
+                    $this->orderType,
+                    null
+                );
+            }
+        });
+
+        $this->reset(['cart', 'splitGroups', 'splitMode', 'customerName', 'activeDraft', 'currentOrderId']);
 
         return redirect()->route('filament.admin.pages.cashier')
             ->with('message', 'Split bill berhasil dibuat. Bayar tiap pesanan dari menu Draft.')
