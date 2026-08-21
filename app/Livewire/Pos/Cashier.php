@@ -119,6 +119,11 @@ class Cashier extends Component
         $this->showDraftsModal = false;
     }
 
+    public function voidCart(): void
+    {
+        $this->reset('cart');
+    }
+
     public function saveDraft()
     {
         if (empty($this->cart)) return;

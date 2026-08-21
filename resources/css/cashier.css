@@ -675,22 +675,46 @@
 .buttons-row {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     margin-top: 16px;
 }
 
+.buttons-row-secondary {
+    display: flex;
+    gap: 8px;
+}
+
+.checkout-btn,
+.secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-lg);
+    font-family: inherit;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.checkout-btn:focus-visible,
+.secondary-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
 .checkout-btn {
+    width: 100%;
+    padding: 13px;
     background-color: var(--color-primary);
     color: white;
-    width: 100%;
-    padding: 10px;
-    margin-top: 1rem;
-    border-radius: var(--radius-xl);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14.5px;
+    font-weight: 700;
     box-shadow: var(--shadow-primary);
+}
+
+.checkout-btn i {
+    font-size: 16px;
 }
 
 .checkout-btn:hover:not(:disabled) {
@@ -710,31 +734,43 @@
     box-shadow: none;
 }
 
-.draft-btn {
-    background: var(--color-draft-bg);
-    width: max-content;
-    padding: 0.3rem 0.5rem;
-    border-radius: var(--radius-md);
-    margin-left: auto;
-    position: relative;
-    color: var(--color-draft-text);
+.secondary-btn {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 13px;
     font-weight: 600;
-    font-size: 12px;
+}
+
+.secondary-btn i {
+    font-size: 14px;
+}
+
+.secondary-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .draft-btn:hover:not(:disabled) {
-    background-color: var(--color-draft-hover);
-    transform: translateY(-1px);
+    border-color: var(--color-draft-hover);
+    background-color: var(--color-draft-bg);
+    color: var(--color-draft-text);
 }
 
 .draft-btn:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(1px);
 }
 
-.draft-btn:disabled {
-    background-color: var(--color-draft-disabled-bg);
-    color: var(--color-draft-disabled-text);
-    cursor: not-allowed;
+.void-btn:hover:not(:disabled) {
+    border-color: var(--color-danger);
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+.void-btn:active:not(:disabled) {
+    transform: translateY(1px);
 }
 
 .drafts-modal-overlay {

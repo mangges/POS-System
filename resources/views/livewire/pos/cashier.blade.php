@@ -161,11 +161,19 @@
                 </div>
 
                 <div class="buttons-row">
-                    <button class="draft-btn" wire:click="saveDraft" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
-                        Draft Pesanan
-                    </button>
+                    <div class="buttons-row-secondary">
+                        <button class="secondary-btn void-btn" wire:click="voidCart" @if(count($cart) === 0) disabled @endif>
+                            <i class="bi bi-trash3"></i>
+                            <span>Kosongkan</span>
+                        </button>
+                        <button class="secondary-btn draft-btn" wire:click="saveDraft" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
+                            <i class="bi bi-save2"></i>
+                            <span>Draft</span>
+                        </button>
+                    </div>
                     <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
-                        Proses Pembayaran
+                        <i class="bi bi-credit-card-fill"></i>
+                        <span>Proses Pembayaran</span>
                     </button>
                 </div>
             </div>
