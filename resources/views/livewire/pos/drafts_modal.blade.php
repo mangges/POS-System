@@ -21,6 +21,9 @@
                             <span class="draft-total">Rp {{ number_format($draft->total_amount, 0, ',', '.') }}</span>
                         </div>
                         <div class="draft-actions">
+                            <button wire:click.stop="closeDraftsModal(); finalizeTableOrder({{ $draft->id }})" title="Bayar">
+                                <i class="bi bi-credit-card"></i>
+                            </button>
                             <button wire:click.stop="deleteDraft({{ $draft->id }})" title="Hapus Draft">
                                 <i class="bi bi-trash"></i>
                             </button>

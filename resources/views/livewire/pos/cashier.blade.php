@@ -107,12 +107,13 @@
             </div>
             
             <div class="cart-items">
-                {{-- {{ dd($cart) }} --}}
                 @if(count($cart) === 0)
                     <div class="empty-cart">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
                         <p>Belum ada pesanan</p>
                     </div>
+                @elseif($splitMode)
+                    @include('livewire.pos.split_bill_panel')
                 @else
                     @foreach($cart as $index => $item)
                         <div class="cart-item">
@@ -138,15 +139,17 @@
             </div>
 
             <div class="cart-summary">
+                @unless($splitMode)
                 <div class="summary-row">
                     <span>Nama Pelanggan</span>
-                    <input 
-                        type="text" 
-                        wire:model.live.debounce.300ms="customerName" 
+                    <input
+                        type="text"
+                        wire:model.live.debounce.300ms="customerName"
                         placeholder="Masukkan nama pelanggan"
                         x-data
                         @input="$el.value = $el.value.replace(/[^a-zA-Z\s]/g, '')">
                 </div>
+                @endunless
                 <div class="summary-row">
                     <span>Subtotal</span>
                     <span>Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
@@ -166,15 +169,23 @@
                             <i class="bi bi-trash3"></i>
                             <span>Kosongkan</span>
                         </button>
+                        <button class="secondary-btn split-toggle-btn" wire:click="toggleSplitMode" @if(count($cart) === 0) disabled @endif>
+                            <i class="bi bi-people-fill"></i>
+                            <span>{{ $splitMode ? 'Batal Split' : 'Split Bill' }}</span>
+                        </button>
+                        @unless($splitMode)
                         <button class="secondary-btn draft-btn" wire:click="saveDraft" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
                             <i class="bi bi-save2"></i>
                             <span>Draft</span>
                         </button>
+                        @endunless
                     </div>
+                    @unless($splitMode)
                     <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
                         <i class="bi bi-credit-card-fill"></i>
                         <span>Proses Pembayaran</span>
                     </button>
+                    @endunless
                 </div>
             </div>
 
