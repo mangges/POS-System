@@ -391,4 +391,63 @@ class CashierSplitBillTest extends TestCase
             ['name' => 'Budi', 'assignments' => [$product->id => 99]],
         ]);
     }
+
+    public function test_switch_split_tab_changes_active_order_and_resets_payment_fields(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->set('paymentMethod', 'qris')
+            ->set('paymentConfirmed', true)
+            ->set('cashReceived', 20000);
+
+        $budiOrderId = $component->instance()->splitGroups[1]['order_id'];
+
+        $component->call('switchSplitTab', 1)
+            ->assertSet('activeSplitIndex', 1)
+            ->assertSet('currentOrderId', $budiOrderId)
+            ->assertSet('paymentMethod', 'cash')
+            ->assertSet('paymentConfirmed', false)
+            ->assertSet('cashReceived', null);
+    }
+
+    public function test_switch_split_tab_ignores_invalid_index(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->call('switchSplitTab', 5)
+            ->assertSet('activeSplitIndex', 0);
+    }
+
+    public function test_split_group_tax_and_total_match_group_subtotal(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id);
+
+        $this->assertSame(2200.0, $component->instance()->splitGroupTax(0));
+        $this->assertSame(22200.0, $component->instance()->splitGroupTotal(0));
+    }
 }

@@ -349,6 +349,33 @@ class Cashier extends Component
         $this->showPaymentModal = true;
     }
 
+    public function switchSplitTab(int $index): void
+    {
+        if (! isset($this->splitGroups[$index]['order_id'])) {
+            return;
+        }
+
+        $this->activeSplitIndex = $index;
+        $this->currentOrderId = $this->splitGroups[$index]['order_id'];
+        $this->paymentMethod = 'cash';
+        $this->paymentConfirmed = false;
+        $this->cashReceived = null;
+        $this->ensureActivePaymentMethod();
+    }
+
+    public function splitGroupTax(int $index): float
+    {
+        return $this->cartCalculatorService->tax($this->splitGroupSubtotal($index));
+    }
+
+    public function splitGroupTotal(int $index): float
+    {
+        return $this->cartCalculatorService->total(
+            $this->splitGroupSubtotal($index),
+            $this->splitGroupTax($index)
+        );
+    }
+
     public function finalizeOrder()
     {
         $this->ensureActivePaymentMethod();
