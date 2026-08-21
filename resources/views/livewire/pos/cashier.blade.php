@@ -90,17 +90,17 @@
                             <span class="header-button-badge">{{ count($this->fromTableOrders) }}</span>
                         @endif
                     </button>
-                    <button wire:click="openDraftsModal" class="cashier-header-button draft-lists-button">
-                        <i class="bi bi-archive"></i>
-                        @if(count($this->draftOrders) > 0)
-                            <span class="header-button-badge">{{ count($this->draftOrders) }}</span>
-                        @endif
-                    </button>
                     <button wire:click="openKitchenOrdersModal" class="cashier-header-button kitchen-orders-button">
                         <i class="bi bi-fire"></i>
                         @php $kitchenCount = count($this->processingTableOrders) + count($this->readyTableOrders); @endphp
                         @if($kitchenCount > 0)
                             <span class="header-button-badge">{{ $kitchenCount }}</span>
+                        @endif
+                    </button>
+                    <button wire:click="openDraftsModal" class="cashier-header-button draft-lists-button">
+                        <i class="bi bi-archive"></i>
+                        @if(count($this->draftOrders) > 0)
+                            <span class="header-button-badge">{{ count($this->draftOrders) }}</span>
                         @endif
                     </button>
                 </div>
