@@ -56,7 +56,7 @@ class LandingPage extends Component
         $guestSession = GuestSession::where('token', $session_token)->firstOrFail();
 
         if ($guestSession->isExpired()) {
-            abort(410, 'Session expired. Please scan the QR code again.');
+            throw new \App\Exceptions\PosAbortException(410, 'Please scan the QR code again.', 'Session expired.', showCta: false);
         }
 
         $this->guestSessionId = $guestSession->id;
@@ -172,7 +172,7 @@ class LandingPage extends Component
         $guestSession = GuestSession::findOrFail($this->guestSessionId);
 
         if ($guestSession->isExpired()) {
-            abort(410, 'Session expired. Please scan the QR code again.');
+            throw new \App\Exceptions\PosAbortException(410, 'Please scan the QR code again.', 'Session expired.', showCta: false);
         }
 
         $this->ensureActivePaymentMethod();
@@ -201,7 +201,7 @@ class LandingPage extends Component
         $guestSession = GuestSession::findOrFail($this->guestSessionId);
 
         if ($guestSession->isExpired()) {
-            abort(410, 'Session expired. Please scan the QR code again.');
+            throw new \App\Exceptions\PosAbortException(410, 'Please scan the QR code again.', 'Session expired.', showCta: false);
         }
 
         $this->ensureActivePaymentMethod();
