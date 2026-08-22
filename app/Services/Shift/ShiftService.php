@@ -6,7 +6,7 @@ use App\Enum\Orders\PaymentStatus;
 use App\Enum\Payments\PaymentMethod;
 use App\Enum\Shifts\CashMovementType;
 use App\Enum\Shifts\ShiftStatus;
-use App\Models\Payment;
+use App\Models\Order;
 use App\Models\Shift;
 
 class ShiftService
@@ -31,10 +31,11 @@ class ShiftService
 
     public function previewExpectedCash(Shift $shift): float
     {
-        $cashSales = Payment::whereHas('order', fn ($q) => $q->where('shift_id', $shift->id))
-            ->where('payment_method', PaymentMethod::Cash->value)
-            ->where('status', PaymentStatus::Success->value)
-            ->sum('amount');
+        $cashSales = Order::where('shift_id', $shift->id)
+            ->whereHas('payment', fn ($q) => $q
+                ->where('payment_method', PaymentMethod::Cash->value)
+                ->where('status', PaymentStatus::Success->value))
+            ->sum('total_amount');
 
         $cashIn = $shift->cashMovements()->where('type', CashMovementType::In->value)->sum('amount');
         $cashOut = $shift->cashMovements()->where('type', CashMovementType::Out->value)->sum('amount');
@@ -44,6 +45,10 @@ class ShiftService
 
     public function close(Shift $shift, float $actualCash, ?string $note = null): Shift
     {
+        if ($shift->status !== ShiftStatus::Open) {
+            throw new \Exception('Shift sudah ditutup.');
+        }
+
         $expectedCash = $this->previewExpectedCash($shift);
         $difference = $actualCash - $expectedCash;
 

@@ -100,7 +100,7 @@ class OrderService
         }
     }
 
-    public function finalizeOrder(?int $orderId, string $paymentMethod, ?float $cashReceived = null, ?string $orderType = null): Order
+    public function finalizeOrder(?int $orderId, string $paymentMethod, ?float $cashReceived = null, ?string $orderType = null, ?int $shiftId = null): Order
     {
         $order = Order::find($orderId);
         $payment = $order->payment;
@@ -116,6 +116,7 @@ class OrderService
             'payment_method' => $paymentMethod,
             'order_type' => $orderType,
             'token' => $token,
+            'shift_id' => $order->shift_id ?? $shiftId,
         ]);
 
         $payment->update([

@@ -64,6 +64,24 @@ class CashierCashMovementTest extends TestCase
         $this->assertSame(CashMovementType::Out, CashMovement::first()->type);
     }
 
+    public function test_recording_a_cash_movement_on_an_already_closed_shift_adds_a_form_error(): void
+    {
+        $user = User::factory()->create();
+        $shift = $this->openShiftFor($user);
+        $shift->update(['status' => ShiftStatus::Closed, 'closed_at' => now()]);
+        $this->actingAs($user);
+
+        Livewire::test(Cashier::class)
+            ->set('activeShift', $shift)
+            ->set('cashMovementType', 'in')
+            ->set('cashMovementAmount', '25000')
+            ->set('cashMovementReason', 'Tambah modal')
+            ->call('recordCashMovement')
+            ->assertHasErrors('cashMovementAmount');
+
+        $this->assertSame(0, CashMovement::count());
+    }
+
     public function test_amount_and_reason_are_required(): void
     {
         $user = User::factory()->create();

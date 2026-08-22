@@ -82,6 +82,37 @@ class ShiftReportPageTest extends TestCase
         $this->assertEquals(0.0, $row['difference']);
     }
 
+    public function test_cash_sales_counts_order_total_not_cash_tendered(): void
+    {
+        $user = User::factory()->create(['name' => 'Andi']);
+        $this->actingAs($user);
+
+        $shift = Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+
+        // Order total is 60000, paid with a 100000 note (40000 change given back).
+        $order = Order::create([
+            'order_number' => 'ORD-' . uniqid(),
+            'total_amount' => 60000,
+            'tax' => 0,
+            'discount' => 0,
+            'status' => OrderStatus::Completed,
+            'order_type' => 'dine_in',
+            'shift_id' => $shift->id,
+        ]);
+        $payment = Payment::create(['order_id' => $order->id, 'payment_method' => 'cash', 'amount' => 100000, 'status' => 'success']);
+        $order->update(['payment_id' => $payment->id]);
+
+        $rows = Livewire::test(ShiftReport::class)->instance()->getRows();
+
+        $row = $rows->first();
+        $this->assertEquals(60000.0, $row['cash_sales']);
+    }
+
     public function test_user_id_filter_narrows_rows_to_one_cashier(): void
     {
         $andi = User::factory()->create(['name' => 'Andi']);

@@ -254,6 +254,11 @@ class Cashier extends Component
             'cashMovementReason' => ['required', 'string', 'min:1'],
         ]);
 
+        if ($this->activeShift->status !== ShiftStatus::Open) {
+            $this->addError('cashMovementAmount', 'Shift sudah ditutup.');
+            return;
+        }
+
         CashMovement::create([
             'shift_id' => $this->activeShift->id,
             'type' => $this->cashMovementType,
@@ -283,7 +288,12 @@ class Cashier extends Component
             'endShiftActualCash' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $this->shiftService->close($this->activeShift, (float) $this->endShiftActualCash, $this->endShiftNote ?: null);
+        try {
+            $this->shiftService->close($this->activeShift, (float) $this->endShiftActualCash, $this->endShiftNote ?: null);
+        } catch (\Exception $e) {
+            $this->addError('endShiftActualCash', $e->getMessage());
+            return;
+        }
 
         $this->activeShift = null;
         $this->showEndShiftModal = false;
@@ -483,7 +493,7 @@ class Cashier extends Component
             return;
         }
 
-        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType, shiftId: $this->activeShift?->id);
 
         if ($this->activeSplitIndex === null) {
             $this->resetCashier();

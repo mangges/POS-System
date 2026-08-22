@@ -114,4 +114,43 @@ class CashierShiftTest extends TestCase
 
         $this->assertSame($shift->id, \App\Models\Order::find($orderId)->shift_id);
     }
+
+    public function test_finalizing_an_order_with_no_shift_attributes_it_to_the_active_shift(): void
+    {
+        $user = User::factory()->create();
+        $shift = Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+
+        // Simulates a table order (created via LandingPage::checkout, which
+        // never stamps shift_id) or a draft resumed from before the shift opened.
+        $order = \App\Models\Order::create([
+            'order_number' => 'ORD-' . uniqid(),
+            'total_amount' => 55000,
+            'tax' => 5000,
+            'discount' => 0,
+            'status' => \App\Enum\Orders\OrderStatus::Pending,
+            'order_type' => 'dine_in',
+            'shift_id' => null,
+        ]);
+        $payment = \App\Models\Payment::create([
+            'order_id' => $order->id,
+            'payment_method' => 'cash',
+            'amount' => 0,
+            'status' => \App\Enum\Orders\PaymentStatus::Pending,
+        ]);
+        $order->update(['payment_id' => $payment->id]);
+
+        Livewire::test(Cashier::class)
+            ->set('currentOrderId', $order->id)
+            ->set('paymentMethod', 'cash')
+            ->set('cashReceived', 60000)
+            ->call('finalizeOrder');
+
+        $this->assertSame($shift->id, $order->fresh()->shift_id);
+    }
 }

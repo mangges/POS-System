@@ -32,12 +32,14 @@ class ShiftServiceTest extends TestCase
             'shift_id' => $shiftId,
         ]);
 
-        Payment::create([
+        $payment = Payment::create([
             'order_id' => $order->id,
             'payment_method' => $paymentMethod,
             'amount' => $amount,
             'status' => $paymentStatus,
         ]);
+
+        $order->update(['payment_id' => $payment->id]);
 
         return $order;
     }
@@ -62,6 +64,37 @@ class ShiftServiceTest extends TestCase
         $this->expectException(\Exception::class);
 
         (new ShiftService())->open($user->id, 50000);
+    }
+
+    public function test_preview_expected_cash_counts_order_total_not_cash_tendered(): void
+    {
+        $user = User::factory()->create();
+        $shift = (new ShiftService())->open($user->id, 100000);
+
+        // Order total is 60000, but the customer paid with a 100000 note.
+        // The drawer only actually gains 60000 (the rest goes back as change).
+        $order = Order::create([
+            'order_number' => 'ORD-' . uniqid(),
+            'total_amount' => 60000,
+            'tax' => 0,
+            'discount' => 0,
+            'status' => OrderStatus::Completed,
+            'order_type' => 'dine_in',
+            'shift_id' => $shift->id,
+        ]);
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'payment_method' => PaymentMethod::Cash->value,
+            'amount' => 100000,
+            'status' => PaymentStatus::Success->value,
+        ]);
+        $order->update(['payment_id' => $payment->id]);
+
+        $expected = (new ShiftService())->previewExpectedCash($shift);
+
+        // 100000 opening + 60000 order total (NOT 100000 cash tendered)
+        $this->assertSame(160000.0, $expected);
     }
 
     public function test_close_computes_expected_cash_from_cash_sales_and_movements_only(): void

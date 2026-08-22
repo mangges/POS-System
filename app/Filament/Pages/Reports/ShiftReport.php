@@ -6,6 +6,7 @@ use App\Enum\Orders\PaymentStatus;
 use App\Enum\Payments\PaymentMethod;
 use App\Enum\Shifts\CashMovementType;
 use App\Filament\Pages\Reports\Concerns\HasReportPeriod;
+use App\Models\Order;
 use App\Models\Shift;
 use App\Models\User;
 use BackedEnum;
@@ -67,12 +68,17 @@ class ShiftReport extends Page
             ->when($userId, fn ($q) => $q->where('user_id', $userId))
             ->get()
             ->map(function (Shift $shift) {
-                $payments = $shift->orders->pluck('payment')->filter(
-                    fn ($payment) => $payment && $payment->status === PaymentStatus::Success
+                $paidOrders = $shift->orders->filter(
+                    fn (Order $order) => $order->payment && $order->payment->status === PaymentStatus::Success
                 );
 
-                $cashSales = (float) $payments->where('payment_method', PaymentMethod::Cash->value)->sum('amount');
-                $nonCashSales = (float) $payments->where('payment_method', '!=', PaymentMethod::Cash->value)->sum('amount');
+                $cashSales = (float) $paidOrders
+                    ->filter(fn (Order $order) => $order->payment->payment_method === PaymentMethod::Cash->value)
+                    ->sum('total_amount');
+
+                $nonCashSales = (float) $paidOrders
+                    ->filter(fn (Order $order) => $order->payment->payment_method !== PaymentMethod::Cash->value)
+                    ->sum('total_amount');
 
                 $cashIn = (float) $shift->cashMovements->where('type', CashMovementType::In)->sum('amount');
                 $cashOut = (float) $shift->cashMovements->where('type', CashMovementType::Out)->sum('amount');

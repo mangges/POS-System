@@ -58,6 +58,49 @@ class CashierEndShiftTest extends TestCase
         $this->assertSame('Kurang Rp 500', $shift->note);
     }
 
+    public function test_closing_an_already_closed_shift_surfaces_a_form_error_and_leaves_reconciliation_unchanged(): void
+    {
+        $user = User::factory()->create();
+        $shift = Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+
+        Livewire::test(Cashier::class)
+            ->call('openEndShiftModal')
+            ->set('endShiftActualCash', '99500')
+            ->set('endShiftNote', 'Kurang Rp 500')
+            ->call('endShift');
+
+        $shift->refresh();
+        $expectedCash = (float) $shift->expected_cash;
+        $actualCash = (float) $shift->actual_cash;
+        $difference = (float) $shift->difference;
+        $closedAt = $shift->closed_at;
+
+        // Second close attempt against the same (already-closed) shift, e.g. a
+        // double submit or a second browser tab — must surface as a form error,
+        // not a crash, and must not overwrite the reconciliation.
+        Livewire::test(Cashier::class)
+            ->set('activeShift', $shift)
+            ->call('openEndShiftModal')
+            ->set('endShiftActualCash', '12345')
+            ->set('endShiftNote', 'should not stick')
+            ->call('endShift')
+            ->assertHasErrors('endShiftActualCash');
+
+        $shift->refresh();
+        $this->assertSame(ShiftStatus::Closed, $shift->status);
+        $this->assertSame($expectedCash, (float) $shift->expected_cash);
+        $this->assertSame($actualCash, (float) $shift->actual_cash);
+        $this->assertSame($difference, (float) $shift->difference);
+        $this->assertEquals($closedAt, $shift->closed_at);
+        $this->assertSame('Kurang Rp 500', $shift->note);
+    }
+
     public function test_actual_cash_is_required_to_close(): void
     {
         $user = User::factory()->create();
