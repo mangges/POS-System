@@ -43,6 +43,7 @@ class Order extends Model
         'customer_id',
         'customer_name',
         'user_id',
+        'shift_id',
         'total_amount',
         'tax',
         'discount',
@@ -78,6 +79,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
     }
 
     public function payment(): BelongsTo
