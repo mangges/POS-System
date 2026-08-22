@@ -80,6 +80,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('filament.echo-script')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                fn (): HtmlString => new HtmlString('<div id="pos-shift-topbar" class="pos-shift-topbar"></div>'),
             );
     }
 }

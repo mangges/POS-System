@@ -9,23 +9,27 @@
             <h1>POS F&B</h1>
         </div>
 
-        <div class="header-user">
-            <div class="shift-badge">
-                <span class="shift-badge-dot"></span>
-                <span>Shift Aktif &middot; Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }} &middot; {{ $activeShift->opened_at->format('H:i') }}</span>
+        <template x-teleport="#pos-shift-topbar">
+            <div class="pos-shift-topbar-group">
+                <x-filament::badge color="gray">
+                    Shift Aktif &middot; Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }} &middot; {{ $activeShift->opened_at->format('H:i') }}
+                </x-filament::badge>
+                <x-filament::icon-button
+                    color="gray"
+                    :icon="\Filament\Support\Icons\Heroicon::OutlinedBanknotes"
+                    icon-size="lg"
+                    label="Cash In/Out"
+                    wire:click="openCashMovementModal"
+                />
+                <x-filament::icon-button
+                    color="gray"
+                    :icon="\Filament\Support\Icons\Heroicon::OutlinedLockClosed"
+                    icon-size="lg"
+                    label="Tutup Shift"
+                    wire:click="openEndShiftModal"
+                />
             </div>
-            <button type="button" wire:click="openCashMovementModal" class="secondary-btn shift-header-btn">
-                <i class="bi bi-cash-coin"></i>
-                <span>Cash In/Out</span>
-            </button>
-            <button type="button" wire:click="openEndShiftModal" class="secondary-btn shift-header-btn">
-                <i class="bi bi-lock-fill"></i>
-                <span>Tutup Shift</span>
-            </button>
-            <div class="user-avatar">
-                {{ $this->userInitials }}
-            </div>
-        </div>
+        </template>
     </header>
 
     <div class="pos-container">
@@ -252,7 +256,13 @@
 
             <form wire:submit.prevent="openShift" class="shift-gate-form">
                 <label for="shiftOpeningCash">Modal Awal (Rp)</label>
-                <input type="number" step="0.01" min="0" id="shiftOpeningCash" wire:model="shiftOpeningCash" class="shift-gate-input" placeholder="0" autofocus>
+                <x-currency-input
+                    model="shiftOpeningCash"
+                    id="shiftOpeningCash"
+                    class="shift-gate-input"
+                    placeholder="Rp 0"
+                    autofocus
+                />
                 <button type="submit" class="checkout-btn shift-gate-submit">
                     <i class="bi bi-unlock-fill"></i>
                     <span>Buka Shift</span>

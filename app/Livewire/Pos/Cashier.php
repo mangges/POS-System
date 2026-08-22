@@ -400,16 +400,6 @@ class Cashier extends Component
         $this->products = $query->get();
     }
 
-    public function getUserInitialsProperty()
-    {
-        $name = Auth::check() ? Auth::user()->name : 'Cashier Name';
-        $words = explode(' ', $name);
-        if (count($words) >= 2) {
-            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-        }
-        return strtoupper(substr($name, 0, 2));
-    }
-
     public function filterCategory($categoryId = null)
     {
         $this->selectedCategory = $categoryId;
