@@ -1758,3 +1758,9 @@
 .cash-movement-reason {
     resize: none;
 }
+
+.shift-gate-input:disabled {
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}

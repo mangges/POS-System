@@ -55,6 +55,10 @@ class Cashier extends Component
     public string $cashMovementType = 'in';
     public string $cashMovementAmount = '';
     public string $cashMovementReason = '';
+    public $showEndShiftModal = false;
+    public ?float $endShiftExpectedCash = null;
+    public string $endShiftActualCash = '';
+    public string $endShiftNote = '';
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
@@ -259,6 +263,30 @@ class Cashier extends Component
         ]);
 
         $this->showCashMovementModal = false;
+    }
+
+    public function openEndShiftModal(): void
+    {
+        $this->reset(['endShiftActualCash', 'endShiftNote']);
+        $this->endShiftExpectedCash = $this->shiftService->previewExpectedCash($this->activeShift);
+        $this->showEndShiftModal = true;
+    }
+
+    public function closeEndShiftModal(): void
+    {
+        $this->showEndShiftModal = false;
+    }
+
+    public function endShift(): void
+    {
+        $this->validate([
+            'endShiftActualCash' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $this->shiftService->close($this->activeShift, (float) $this->endShiftActualCash, $this->endShiftNote ?: null);
+
+        $this->activeShift = null;
+        $this->showEndShiftModal = false;
     }
 
     public function openQrisPreviewForOrder(int $id): void

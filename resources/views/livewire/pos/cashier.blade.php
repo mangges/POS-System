@@ -18,6 +18,10 @@
                 <i class="bi bi-cash-coin"></i>
                 <span>Cash In/Out</span>
             </button>
+            <button type="button" wire:click="openEndShiftModal" class="secondary-btn shift-header-btn">
+                <i class="bi bi-lock-fill"></i>
+                <span>Tutup Shift</span>
+            </button>
             <div class="user-avatar">
                 {{ $this->userInitials }}
             </div>
@@ -226,6 +230,12 @@
         <div class="qris-preview-overlay @if(!$showCashMovementModal) closed @endif">
             @if($showCashMovementModal)
                 @include('livewire.pos.cash_movement_modal')
+            @endif
+        </div>
+
+        <div class="qris-preview-overlay @if(!$showEndShiftModal) closed @endif">
+            @if($showEndShiftModal)
+                @include('livewire.pos.end_shift_modal')
             @endif
         </div>
     </div>
