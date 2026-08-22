@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\CashMovement;
 use App\Enum\Orders\OrderStatus;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
@@ -50,6 +51,10 @@ class Cashier extends Component
     public $showKitchenOrdersModal = false;
     public $showQrisPreviewModal = false;
     public ?int $previewQrisAmount = null;
+    public $showCashMovementModal = false;
+    public string $cashMovementType = 'in';
+    public string $cashMovementAmount = '';
+    public string $cashMovementReason = '';
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
@@ -224,6 +229,36 @@ class Cashier extends Component
     {
         $this->showQrisPreviewModal = false;
         $this->previewQrisAmount = null;
+    }
+
+    public function openCashMovementModal(): void
+    {
+        $this->reset(['cashMovementType', 'cashMovementAmount', 'cashMovementReason']);
+        $this->showCashMovementModal = true;
+    }
+
+    public function closeCashMovementModal(): void
+    {
+        $this->showCashMovementModal = false;
+    }
+
+    public function recordCashMovement(): void
+    {
+        $this->validate([
+            'cashMovementType' => ['required', 'in:in,out'],
+            'cashMovementAmount' => ['required', 'numeric', 'gt:0'],
+            'cashMovementReason' => ['required', 'string', 'min:1'],
+        ]);
+
+        CashMovement::create([
+            'shift_id' => $this->activeShift->id,
+            'type' => $this->cashMovementType,
+            'amount' => (float) $this->cashMovementAmount,
+            'reason' => $this->cashMovementReason,
+            'created_by' => Auth::id(),
+        ]);
+
+        $this->showCashMovementModal = false;
     }
 
     public function openQrisPreviewForOrder(int $id): void

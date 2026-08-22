@@ -14,6 +14,10 @@
                 <span class="shift-badge-dot"></span>
                 <span>Shift Aktif &middot; Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }} &middot; {{ $activeShift->opened_at->format('H:i') }}</span>
             </div>
+            <button type="button" wire:click="openCashMovementModal" class="secondary-btn shift-header-btn">
+                <i class="bi bi-cash-coin"></i>
+                <span>Cash In/Out</span>
+            </button>
             <div class="user-avatar">
                 {{ $this->userInitials }}
             </div>
@@ -216,6 +220,12 @@
         <div class="qris-preview-overlay @if(!$showQrisPreviewModal) closed @endif">
             @if($showQrisPreviewModal)
                 @include('livewire.pos.qris_preview_modal')
+            @endif
+        </div>
+
+        <div class="qris-preview-overlay @if(!$showCashMovementModal) closed @endif">
+            @if($showCashMovementModal)
+                @include('livewire.pos.cash_movement_modal')
             @endif
         </div>
     </div>
