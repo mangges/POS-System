@@ -36,7 +36,8 @@ class LandingPage extends Component
     public bool $orderSubmitted = false;
     public ?string $lastOrderNumber = null;
     public ?int $lastOrderTotal = null;
-    public array $splitOrderNumbers = [];
+    public array $splitOrderDetails = [];
+    public ?int $activeSuccessTabIndex = null;
 
     public ?int $viewingOrderId = null;
 
@@ -82,10 +83,6 @@ class LandingPage extends Component
     {
         if ($this->splitMode) {
             if (! $this->canCheckoutSplit()) return;
-
-            if ($this->paymentMethod === 'qris') {
-                $this->paymentMethod = collect($this->activeMethods)->first(fn ($m) => $m !== 'qris') ?? 'cash';
-            }
         } elseif (empty($this->cart)) {
             return;
         }
@@ -93,12 +90,21 @@ class LandingPage extends Component
         $this->showPaymentModal = true;
     }
 
+    public function switchSuccessTab(int $index): void
+    {
+        if (! isset($this->splitOrderDetails[$index])) {
+            return;
+        }
+
+        $this->activeSuccessTabIndex = $index;
+    }
+
     public function closePaymentModal()
     {
         $this->showPaymentModal = false;
 
         if ($this->orderSubmitted) {
-            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId', 'splitOrderNumbers']);
+            $this->reset(['customerName', 'paymentMethod', 'orderSubmitted', 'lastOrderNumber', 'lastOrderTotal', 'currentOrderId', 'splitOrderDetails', 'activeSuccessTabIndex']);
             $this->ensureActivePaymentMethod();
         }
     }
@@ -200,9 +206,9 @@ class LandingPage extends Component
 
         $this->ensureActivePaymentMethod();
 
-        $orderNumbers = [];
+        $orderDetails = [];
 
-        DB::transaction(function () use ($guestSession, &$orderNumbers) {
+        DB::transaction(function () use ($guestSession, &$orderDetails) {
             foreach ($this->splitGroups as $index => $group) {
                 $order = $this->orderService->processOrder(
                     $this->buildSplitCartItems($index),
@@ -213,12 +219,17 @@ class LandingPage extends Component
                     $this->paymentMethod
                 );
 
-                $orderNumbers[] = $order->order_number;
+                $orderDetails[] = [
+                    'name' => $group['name'],
+                    'order_number' => $order->order_number,
+                    'total' => (int) round($order->total_amount),
+                ];
                 $this->dispatch('order-placed', orderId: $order->id);
             }
         });
 
-        $this->splitOrderNumbers = $orderNumbers;
+        $this->splitOrderDetails = $orderDetails;
+        $this->activeSuccessTabIndex = 0;
         $this->orderSubmitted = true;
         $this->reset(['cart', 'splitGroups', 'splitMode']);
     }

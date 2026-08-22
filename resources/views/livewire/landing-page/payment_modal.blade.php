@@ -38,7 +38,7 @@
                             <span class="payment-method-label">Tunai</span>
                         </label>
                         @endif
-                        @if(in_array('qris', $this->activeMethods) && ! $splitMode)
+                        @if(in_array('qris', $this->activeMethods))
                         <label class="payment-method-option {{ $paymentMethod === 'qris' ? 'active' : '' }}">
                             <input type="radio" name="payment_method" wire:model.live="paymentMethod" value="qris" class="hidden-radio">
                             <span class="payment-method-label">QRIS</span>
@@ -68,20 +68,32 @@
                     </div>
                 </div>
 
-                <p class="payment-notice">
-                    @if ($paymentMethod === 'cash')
-                        Kasir kami akan membawakan bills ke meja Anda untuk pembayaran.
-                    @elseif ($this->qrisImage)
-                        Scan QR di bawah ini untuk membayar langsung dari HP Anda.
-                    @else
-                        Kasir kami akan membawakan mesin EDC ke meja Anda untuk pembayaran.
+                @if($splitMode)
+                    <p class="payment-notice">
+                        @if ($paymentMethod === 'qris')
+                            Tiap orang akan dapat kode QR sendiri sesuai jumlahnya setelah pesanan dikonfirmasi.
+                        @elseif ($paymentMethod === 'cash')
+                            Kasir kami akan membawakan bills ke meja Anda untuk pembayaran.
+                        @else
+                            Kasir kami akan membawakan mesin EDC ke meja Anda untuk pembayaran.
+                        @endif
+                    </p>
+                @else
+                    <p class="payment-notice">
+                        @if ($paymentMethod === 'cash')
+                            Kasir kami akan membawakan bills ke meja Anda untuk pembayaran.
+                        @elseif ($this->qrisImage)
+                            Scan QR di bawah ini untuk membayar langsung dari HP Anda.
+                        @else
+                            Kasir kami akan membawakan mesin EDC ke meja Anda untuk pembayaran.
+                        @endif
+                    </p>
+                    @if ($this->qrisImage)
+                        <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
+                        <a href="data:image/svg+xml;base64,{{ base64_encode($this->qrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
+                            <i class="bi bi-download"></i> Download QRIS
+                        </a>
                     @endif
-                </p>
-                @if ($this->qrisImage)
-                    <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
-                    <a href="data:image/svg+xml;base64,{{ base64_encode($this->qrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
-                        <i class="bi bi-download"></i> Download QRIS
-                    </a>
                 @endif
             </div>
 
@@ -107,37 +119,66 @@
                     </svg>
                 </div>
                 <h2 class="payment-success-title">Pesanan Diterima</h2>
-                @if(empty($splitOrderNumbers))
-                <p class="payment-success-order">{{ $lastOrderNumber }}</p>
-                @else
-                <div class="payment-success-split-list">
-                    @foreach($splitOrderNumbers as $orderNumber)
-                        <p class="payment-success-order">{{ $orderNumber }}</p>
-                    @endforeach
-                </div>
-                @endif
-                <p class="payment-success-message">
-                    @if ($paymentMethod === 'cash')
-                        Kasir kami akan segera membawakan struk pembayaran ke meja Anda.
-                    @elseif ($paymentMethod === 'qris')
-                        Silakan selesaikan pembayaran QRIS Anda. Kasir akan memverifikasi pembayaran sebelum pesanan diproses.
-                    @else
-                        Kasir kami akan segera membawakan mesin EDC ke meja Anda untuk proses pembayaran.
+
+                @if(empty($splitOrderDetails))
+                    <p class="payment-success-order">{{ $lastOrderNumber }}</p>
+                    <p class="payment-success-message">
+                        @if ($paymentMethod === 'cash')
+                            Kasir kami akan segera membawakan struk pembayaran ke meja Anda.
+                        @elseif ($paymentMethod === 'qris')
+                            Silakan selesaikan pembayaran QRIS Anda. Kasir akan memverifikasi pembayaran sebelum pesanan diproses.
+                        @else
+                            Kasir kami akan segera membawakan mesin EDC ke meja Anda untuk proses pembayaran.
+                        @endif
+                    </p>
+                    @if ($successQrisImage)
+                        <button type="button" x-show="!showQr" x-on:click="showQr = true" class="qris-download-btn">
+                            <i class="bi bi-qr-code"></i> Lihat QRIS Lagi
+                        </button>
+                        <template x-if="showQr">
+                            <div>
+                                <div class="qris-qr-wrap">{!! $successQrisImage !!}</div>
+                                <a href="data:image/svg+xml;base64,{{ base64_encode($successQrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
+                                    <i class="bi bi-download"></i> Download QRIS
+                                </a>
+                            </div>
+                        </template>
                     @endif
-                </p>
-                @if ($successQrisImage)
-                    <button type="button" x-show="!showQr" x-on:click="showQr = true" class="qris-download-btn">
-                        <i class="bi bi-qr-code"></i> Lihat QRIS Lagi
-                    </button>
-                    <template x-if="showQr">
-                        <div>
-                            <div class="qris-qr-wrap">{!! $successQrisImage !!}</div>
-                            <a href="data:image/svg+xml;base64,{{ base64_encode($successQrisImage) }}" download="qris-pembayaran.svg" class="qris-download-btn">
-                                <i class="bi bi-download"></i> Download QRIS
-                            </a>
-                        </div>
-                    </template>
+                @elseif ($paymentMethod === 'qris' && count($splitOrderDetails) > 1)
+                    <div class="payment-split-tabs">
+                        @foreach($splitOrderDetails as $index => $detail)
+                            <button type="button"
+                                class="payment-split-tab {{ $activeSuccessTabIndex === $index ? 'active' : '' }}"
+                                wire:click="switchSuccessTab({{ $index }})">
+                                {{ $detail['name'] }}
+                            </button>
+                        @endforeach
+                    </div>
+                    @php $activeDetail = $splitOrderDetails[$activeSuccessTabIndex] ?? $splitOrderDetails[0]; @endphp
+                    <p class="payment-success-order">{{ $activeDetail['order_number'] }}</p>
+                    <p class="payment-success-message">
+                        Rp {{ number_format($activeDetail['total'], 0, ',', '.') }} — silakan selesaikan pembayaran QRIS {{ $activeDetail['name'] }}. Kasir akan memverifikasi pembayaran sebelum pesanan diproses.
+                    </p>
+                    @php $activeQrisImage = $this->qrisImageForAmount($activeDetail['total']); @endphp
+                    <div class="qris-qr-wrap">{!! $activeQrisImage !!}</div>
+                    <a href="data:image/svg+xml;base64,{{ base64_encode($activeQrisImage) }}" download="qris-pembayaran-{{ $activeDetail['name'] }}.svg" class="qris-download-btn">
+                        <i class="bi bi-download"></i> Download QRIS
+                    </a>
+                @else
+                    <div class="payment-success-split-list">
+                        @foreach($splitOrderDetails as $detail)
+                            <p class="payment-success-order">{{ $detail['order_number'] }}</p>
+                        @endforeach
+                    </div>
+                    <p class="payment-success-message">
+                        @if ($paymentMethod === 'cash')
+                            Kasir kami akan segera membawakan struk pembayaran ke meja Anda.
+                        @else
+                            Kasir kami akan segera membawakan mesin EDC ke meja Anda untuk proses pembayaran.
+                        @endif
+                    </p>
                 @endif
+
                 <button type="button" wire:click="closePaymentModal" class="payment-submit-btn">Tutup</button>
             </div>
         @endif

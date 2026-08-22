@@ -108,7 +108,7 @@ class LandingPageSplitBillTest extends TestCase
         $this->assertSame(0, Order::count());
     }
 
-    public function test_opening_the_payment_modal_in_split_mode_falls_back_off_qris(): void
+    public function test_opening_the_payment_modal_in_split_mode_keeps_qris_selected(): void
     {
         $guestSession = $this->createGuestSession();
         $product = $this->createProduct('Nasi Goreng', 20000);
@@ -124,6 +124,59 @@ class LandingPageSplitBillTest extends TestCase
             ->set('paymentMethod', 'qris')
             ->call('openPaymentModal')
             ->assertSet('showPaymentModal', true)
-            ->assertSet('paymentMethod', 'cash');
+            ->assertSet('paymentMethod', 'qris');
+    }
+
+    public function test_checkout_split_with_qris_records_per_group_order_details(): void
+    {
+        $guestSession = $this->createGuestSession();
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(LandingPage::class, ['session_token' => $guestSession->token])
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('toggleSplitMode')
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->set('paymentMethod', 'qris')
+            ->call('checkoutSplit')
+            ->assertSet('orderSubmitted', true)
+            ->assertSet('activeSuccessTabIndex', 0);
+
+        $andi = Order::where('customer_name', 'Andi')->first();
+        $budi = Order::where('customer_name', 'Budi')->first();
+
+        $details = $component->instance()->splitOrderDetails;
+
+        $this->assertCount(2, $details);
+        $this->assertSame('Andi', $details[0]['name']);
+        $this->assertSame($andi->order_number, $details[0]['order_number']);
+        $this->assertSame((int) round($andi->total_amount), $details[0]['total']);
+        $this->assertSame('Budi', $details[1]['name']);
+        $this->assertSame($budi->order_number, $details[1]['order_number']);
+        $this->assertSame((int) round($budi->total_amount), $details[1]['total']);
+    }
+
+    public function test_switch_success_tab_changes_active_index(): void
+    {
+        $guestSession = $this->createGuestSession();
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(LandingPage::class, ['session_token' => $guestSession->token])
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('toggleSplitMode')
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->set('paymentMethod', 'qris')
+            ->call('checkoutSplit')
+            ->call('switchSuccessTab', 1)
+            ->assertSet('activeSuccessTabIndex', 1)
+            ->call('switchSuccessTab', 5) // out of range, no-op
+            ->assertSet('activeSuccessTabIndex', 1);
     }
 }
