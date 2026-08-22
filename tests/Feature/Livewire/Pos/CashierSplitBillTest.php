@@ -450,4 +450,92 @@ class CashierSplitBillTest extends TestCase
         $this->assertSame(2200.0, $component->instance()->splitGroupTax(0));
         $this->assertSame(22200.0, $component->instance()->splitGroupTotal(0));
     }
+
+    public function test_finalize_order_in_split_mode_marks_tab_paid_and_advances_to_next_unpaid(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->set('cashReceived', 22200)
+            ->call('finalizeOrder');
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+        $budi = \App\Models\Order::where('customer_name', 'Budi')->first();
+
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $andi->fresh()->status);
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Pending, $budi->fresh()->status);
+
+        $component->assertSet('showPaymentModal', true)
+            ->assertSet('activeSplitIndex', 1)
+            ->assertSet('currentOrderId', $budi->id);
+
+        $this->assertTrue($component->instance()->splitGroups[0]['paid']);
+        $this->assertFalse($component->instance()->splitGroups[1]['paid']);
+    }
+
+    public function test_finalize_order_on_last_split_tab_closes_modal_and_resets_state(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->set('cashReceived', 22200)
+            ->call('finalizeOrder') // pays Andi, advances to Budi
+            ->set('cashReceived', 22200)
+            ->call('finalizeOrder'); // pays Budi, should close out
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+        $budi = \App\Models\Order::where('customer_name', 'Budi')->first();
+
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $andi->fresh()->status);
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $budi->fresh()->status);
+
+        $component->assertSet('showPaymentModal', false)
+            ->assertSet('splitGroups', [])
+            ->assertSet('splitMode', false)
+            ->assertSet('activeSplitIndex', null)
+            ->assertSet('cart', []);
+    }
+
+    public function test_finalize_order_cannot_repay_an_already_paid_split_tab(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->set('cashReceived', 22200)
+            ->call('finalizeOrder'); // pays Andi, advances to Budi
+
+        $andi = \App\Models\Order::where('customer_name', 'Andi')->first();
+        $andiPaidAt = $andi->fresh()->updated_at;
+
+        $component->call('switchSplitTab', 0) // go back to view Andi's now-paid tab
+            ->set('cashReceived', 22200)
+            ->call('finalizeOrder'); // must no-op
+
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $andi->fresh()->status);
+        $this->assertTrue($andiPaidAt->equalTo($andi->fresh()->updated_at));
+    }
 }

@@ -383,10 +383,31 @@ class Cashier extends Component
         if ($this->paymentMethod === 'cash' && empty($this->cashReceived)) return;
         if ($this->paymentMethod !== 'cash' && ! $this->paymentConfirmed) return;
 
-        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
-        $this->resetCashier();
-        $this->closePaymentModal();
+        if ($this->activeSplitIndex !== null && ($this->splitGroups[$this->activeSplitIndex]['paid'] ?? false)) {
+            return;
+        }
 
+        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+
+        if ($this->activeSplitIndex === null) {
+            $this->resetCashier();
+            $this->closePaymentModal();
+            $this->showReceipt($order->id);
+            return;
+        }
+
+        $this->splitGroups[$this->activeSplitIndex]['paid'] = true;
+
+        $nextUnpaid = collect($this->splitGroups)->search(fn ($group) => ! $group['paid']);
+
+        if ($nextUnpaid !== false) {
+            $this->switchSplitTab($nextUnpaid);
+            return;
+        }
+
+        $this->resetCashier();
+        $this->reset(['splitGroups', 'splitMode', 'activeSplitIndex']);
+        $this->closePaymentModal();
         $this->showReceipt($order->id);
     }
 
