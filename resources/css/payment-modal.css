@@ -23,14 +23,18 @@
     width: 100%;
     max-width: 850px;
     max-height: calc(100vh - 2rem);
-    overflow-y: auto;
-    overflow-x: hidden; 
+    overflow: hidden;
     display: flex;
     flex-direction: row;
     transform: scale(0.98);
     transition: transform 0.3s ease;
 }
 
+/* Each pane scrolls independently within the card's fixed max-height, so
+   growing the left pane (e.g. QRIS content) never carries the right pane's
+   summary/submit button out of view along with it. min-height: 0 overrides
+   flexbox's default min-height: auto, which otherwise stops these panes
+   from shrinking below their content size and defeats overflow-y here. */
 .modal-left-content {
     width: 60%;
     padding: 1.5rem;
@@ -38,7 +42,8 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    min-height: 100%;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .modal-header {
@@ -231,6 +236,8 @@
     border-bottom-right-radius: 1rem;
     border-top-right-radius: 1rem;
     box-sizing: border-box;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .close-desktop-wrapper {
@@ -540,10 +547,16 @@
     color: #64748b;
 }
 
-@media (max-wmax-width: 768px) {
+@media (max-width: 768px) {
     .payment-modal-card {
         flex-direction: column;
         max-height: 95vh;
+        overflow-y: auto;
+    }
+    .modal-left-content,
+    .modal-right-content {
+        overflow-y: visible;
+        min-height: auto;
     }
     .modal-left-content {
         width: 100%;

@@ -1559,32 +1559,41 @@
     transform: translateY(0);
 }
 
+/* Sticky at top:0 with no negative top margin, so it stays pinned to
+   whichever ancestor is actually scrolling (.modal-left-content on desktop,
+   .payment-modal-card once panes stack on mobile) without needing a
+   per-breakpoint offset. Horizontal bleed only, to sit flush with the
+   pane's edges like the rest of the padded content above/below it. */
 .payment-split-tabs {
     display: flex;
     gap: 4px;
     overflow-x: auto;
-    padding: 8px 8px 0;
-    margin: -1.5rem -1.5rem 1rem;
-    border-bottom: 1px solid #f3f4f6;
+    margin: 0 -1.5rem 1rem;
+    padding: 0 1.5rem 8px;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-bg-surface);
 }
 
 .payment-split-tab {
     flex-shrink: 0;
     padding: 8px 14px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     border-bottom: none;
-    border-radius: 8px 8px 0 0;
-    background: #f8fafc;
-    color: #64748b;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
     font-size: 13px;
     cursor: pointer;
 }
 
 .payment-split-tab.active {
-    background: #ffffff;
-    color: #0f172a;
+    background: var(--color-bg-surface);
+    color: var(--color-text-dark);
     font-weight: 600;
-    border-color: #cbd5e1;
+    border-color: var(--color-border-hover);
 }
 
 .payment-split-tab.is-paid {
