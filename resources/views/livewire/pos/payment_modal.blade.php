@@ -89,42 +89,43 @@
             </label>
         @endif
 
-        <div id="cashDenominations" class="{{ $this->paymentMethod !== 'cash' ? 'section-disabled' : '' }}">
+        @if($this->paymentMethod === 'cash')
+        <div id="cashDenominations">
             <h4 class="section-subtitle">Uang Pecahan</h4>
             <div class="denominations-row-3">
-                <button type="button" data-select-cash="100000" class="btn-denom long-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 100.000</button>
-                <button type="button" data-select-cash="50000" class="btn-denom long-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 50.000</button>
-                <button type="button" data-select-cash="20000" class="btn-denom long-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 20.000</button>
+                <button type="button" data-select-cash="100000" class="btn-denom long-denom">Rp 100.000</button>
+                <button type="button" data-select-cash="50000" class="btn-denom long-denom">Rp 50.000</button>
+                <button type="button" data-select-cash="20000" class="btn-denom long-denom">Rp 20.000</button>
             </div>
             <div class="denominations-row-4">
-                <button type="button" data-select-cash="10000" class="btn-denom short-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 10.000</button>
-                <button type="button" data-select-cash="5000" class="btn-denom short-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 5.000</button>
-                <button type="button" data-select-cash="2000" class="btn-denom short-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 2.000</button>
-                <button type="button" data-select-cash="1000" class="btn-denom short-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Rp 1.000</button>
+                <button type="button" data-select-cash="10000" class="btn-denom short-denom">Rp 10.000</button>
+                <button type="button" data-select-cash="5000" class="btn-denom short-denom">Rp 5.000</button>
+                <button type="button" data-select-cash="2000" class="btn-denom short-denom">Rp 2.000</button>
+                <button type="button" data-select-cash="1000" class="btn-denom short-denom">Rp 1.000</button>
             </div>
 
             <div class="reset-denominations-wrapper">
-                <button type="button" id="resetDenominations" class="btn-reset-denom" @if($this->paymentMethod !== 'cash') disabled @endif>Reset</button>
+                <button type="button" id="resetDenominations" class="btn-reset-denom">Reset</button>
             </div>
         </div>
 
-        <div class="input-received-group {{ $this->paymentMethod !== 'cash' ? 'section-disabled' : '' }}">
+        <div class="input-received-group">
             <label class="input-label">Uang Diterima (Cash Received)</label>
             <div class="input-wrapper">
                 <div class="input-prefix">
                     <span>Rp</span>
                 </div>
-                <input 
-                    type="text" 
-                    inputmode="numeric" 
-                    id="cashReceived" 
-                    class="input-cash using-price-input" 
+                <input
+                    type="text"
+                    inputmode="numeric"
+                    id="cashReceived"
+                    class="input-cash using-price-input"
                     placeholder="0"
-                    @if($this->paymentMethod !== 'cash') disabled @endif
                     x-on:input="$wire.set('cashReceived', unformatPrice($event.target.value))">
                 <input type="hidden" id="cashReceived_raw" wire:model="cashReceived">
             </div>
         </div>
+        @endif
     </div>
 
     <div class="modal-right-content">

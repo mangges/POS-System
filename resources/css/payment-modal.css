@@ -378,30 +378,6 @@
     box-shadow: none;
 }
 
-.section-disabled {
-    position: relative;
-    opacity: 0.4;
-    pointer-events: none;
-    filter: grayscale(60%);
-    transition: opacity 0.25s ease, filter 0.25s ease;
-    user-select: none;
-}
-
-.section-disabled .btn-denom,
-.section-disabled .btn-reset-denom {
-    cursor: not-allowed;
-    background-color: #f1f1f1 !important;
-    color: #9ca3af !important;
-    border-color: #e5e7eb !important;
-}
-
-.section-disabled input,
-.input-cash:disabled {
-    cursor: not-allowed;
-    background-color: #f9fafb;
-    color: #9ca3af;
-}
-
 .payment-notice {
     display: flex;
     align-items: center;
@@ -535,17 +511,6 @@
 .dark .btn-preview-qris { background-color: #16233b; border-color: #2c4a70; color: #93c5fd; }
 .dark .btn-preview-qris:hover { background-color: #1e3a5f; }
 .dark .payment-confirm-checkbox { background-color: #2a2410; border-color: #92400e; color: #fde68a; }
-.dark .section-disabled .btn-denom,
-.dark .section-disabled .btn-reset-denom {
-    background-color: #1f2937 !important;
-    color: #64748b !important;
-    border-color: #334155 !important;
-}
-.dark .section-disabled input,
-.dark .input-cash:disabled {
-    background-color: #1a2333;
-    color: #64748b;
-}
 
 @media (max-width: 768px) {
     .payment-modal-card {
