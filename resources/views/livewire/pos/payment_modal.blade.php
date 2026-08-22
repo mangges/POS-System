@@ -1,5 +1,24 @@
 <div class="payment-modal-card">
+    @php
+        $displaySubtotal = $activeSplitIndex !== null ? $this->splitGroupSubtotal($activeSplitIndex) : $this->subtotal;
+        $displayTax = $activeSplitIndex !== null ? $this->splitGroupTax($activeSplitIndex) : $this->taxAmount;
+        $displayTotal = $activeSplitIndex !== null ? $this->splitGroupTotal($activeSplitIndex) : $this->total;
+        $displayName = $activeSplitIndex !== null ? $splitGroups[$activeSplitIndex]['name'] : $this->customerName;
+        $displayChange = $this->cashReceived !== null ? max(0, $this->cashReceived - $displayTotal) : null;
+    @endphp
     <div class="modal-left-content">
+        @if(count($splitGroups) > 1)
+            <div class="payment-split-tabs">
+                @foreach($splitGroups as $index => $group)
+                    <button type="button"
+                        class="payment-split-tab {{ $activeSplitIndex === $index ? 'active' : '' }} {{ $group['paid'] ? 'is-paid' : '' }}"
+                        wire:click="switchSplitTab({{ $index }})">
+                        @if($group['paid'])<i class="bi bi-check-circle-fill"></i>@endif
+                        {{ $group['name'] }}
+                    </button>
+                @endforeach
+            </div>
+        @endif
         <div class="modal-header">
             <h3 class="modal-title">Metode Pembayaran</h3>
             <button wire:click="closePaymentModal" class="close-mobile-btn">
@@ -48,12 +67,12 @@
         </div>
 
         @if($this->paymentMethod !== 'cash')
-            @if($this->qrisImage)
+            @if($this->qrisImageForAmount($displayTotal))
                 <div class="payment-notice">
                     <i class="bi bi-qr-code"></i>
-                    <p>Minta pelanggan scan QR ini untuk membayar Rp {{ number_format($this->total) }}.</p>
+                    <p>Minta pelanggan scan QR ini untuk membayar Rp {{ number_format($displayTotal) }}.</p>
                 </div>
-                <div class="qris-qr-wrap">{!! $this->qrisImage !!}</div>
+                <div class="qris-qr-wrap">{!! $this->qrisImageForAmount($displayTotal) !!}</div>
                 <button type="button" wire:click="openQrisPreviewModal" class="btn-preview-qris">
                     <i class="bi bi-arrows-fullscreen"></i> Tampilkan QRIS ke Pelanggan
                 </button>
@@ -121,27 +140,28 @@
             <div class="price-details">
                 <div class="price-row text-secondary">
                     <span>Pelanggan</span>
-                    <span id="summaryCustomer">{{ $this->customerName }}</span>
+                    <span id="summaryCustomer">{{ $displayName }}</span>
                 </div>
                 <div class="price-row text-secondary">
                     <span>Subtotal</span>
-                    <span id="summarySubtotal">Rp {{ number_format($this->subtotal) }}</span>
+                    <span id="summarySubtotal">Rp {{ number_format($displaySubtotal) }}</span>
                 </div>
                 <div class="price-row text-secondary">
                     <span>Tax (11%)</span>
-                    <span id="summaryTax">Rp {{ number_format($this->taxAmount) }}</span>
+                    <span id="summaryTax">Rp {{ number_format($displayTax) }}</span>
                 </div>
                 <div class="price-row total-row">
                     <span>Total Tagihan</span>
-                    <span id="summaryTotal" class="text-blue">Rp {{ number_format($this->total) }}</span>
+                    <span id="summaryTotal" class="text-blue">Rp {{ number_format($displayTotal) }}</span>
                 </div>
             </div>
 
             @php
-                $isInsufficient = $this->cashReceived !== null && $this->cashReceived < $this->total;
-                $canFinalize = $this->paymentMethod === 'cash'
+                $isInsufficient = $this->cashReceived !== null && $this->cashReceived < $displayTotal;
+                $isPaidSplitTab = $activeSplitIndex !== null && ($splitGroups[$activeSplitIndex]['paid'] ?? false);
+                $canFinalize = ! $isPaidSplitTab && ($this->paymentMethod === 'cash'
                     ? (! $isInsufficient && $cashReceived !== null)
-                    : $paymentConfirmed;
+                    : $paymentConfirmed);
             @endphp
 
             <div class="@if($isInsufficient) change-box-danger @else change-box-success @endif">
@@ -152,7 +172,7 @@
                 @endif
 
                 <div id="summaryChange" class="@if($isInsufficient) change-amount-danger @else change-amount-success @endif">
-                    Rp {{ number_format($this->change ?? 0) }}
+                    Rp {{ number_format($displayChange ?? 0) }}
                 </div>
             </div>
         </div>
