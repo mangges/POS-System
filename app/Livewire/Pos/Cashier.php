@@ -156,7 +156,7 @@ class Cashier extends Component
     {
         if (empty($this->cart)) return;
 
-        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft, shiftId: $this->activeShift?->id);
 
         $this->activeDraft = null;
         $this->reset('cart', 'customerName');
@@ -347,7 +347,7 @@ class Cashier extends Component
     {
         if (empty($this->cart) || empty($this->customerName)) return;
 
-        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft, shiftId: $this->activeShift?->id);
 
         $this->currentOrderId = $order->id;
         $this->showPaymentModal = true;
@@ -368,7 +368,8 @@ class Cashier extends Component
                     null,
                     $group['name'],
                     $this->orderType,
-                    null
+                    null,
+                    shiftId: $this->activeShift?->id
                 );
 
                 $this->splitGroups[$index]['order_id'] = $order->id;

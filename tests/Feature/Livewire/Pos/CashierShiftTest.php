@@ -92,4 +92,26 @@ class CashierShiftTest extends TestCase
 
         $this->assertSame(1, Shift::count());
     }
+
+    public function test_checkout_stamps_the_created_order_with_the_active_shift(): void
+    {
+        $user = User::factory()->create();
+        $shift = Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->set('customerName', 'Andi')
+            ->call('checkout');
+
+        $orderId = $component->get('currentOrderId');
+
+        $this->assertSame($shift->id, \App\Models\Order::find($orderId)->shift_id);
+    }
 }
