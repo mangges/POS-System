@@ -145,6 +145,9 @@
                         </template>
                     @endif
                 @elseif ($paymentMethod === 'qris' && count($splitOrderDetails) > 1)
+                    <p class="payment-success-message">
+                        Tiap orang bayar sendiri sesuai jumlahnya. Ketuk nama untuk lihat kode QR masing-masing.
+                    </p>
                     <div class="payment-split-tabs">
                         @foreach($splitOrderDetails as $index => $detail)
                             <button type="button"
@@ -155,19 +158,26 @@
                         @endforeach
                     </div>
                     @php $activeDetail = $splitOrderDetails[$activeSuccessTabIndex] ?? $splitOrderDetails[0]; @endphp
-                    <p class="payment-success-order">{{ $activeDetail['order_number'] }}</p>
-                    <p class="payment-success-message">
-                        Rp {{ number_format($activeDetail['total'], 0, ',', '.') }} — silakan selesaikan pembayaran QRIS {{ $activeDetail['name'] }}. Kasir akan memverifikasi pembayaran sebelum pesanan diproses.
-                    </p>
                     @php $activeQrisImage = $this->qrisImageForAmount($activeDetail['total']); @endphp
-                    <div class="qris-qr-wrap">{!! $activeQrisImage !!}</div>
-                    <a href="data:image/svg+xml;base64,{{ base64_encode($activeQrisImage) }}" download="qris-pembayaran-{{ $activeDetail['name'] }}.svg" class="qris-download-btn">
-                        <i class="bi bi-download"></i> Download QRIS
-                    </a>
+                    <div class="payment-success-qris-card">
+                        <p class="payment-success-qris-name">{{ $activeDetail['name'] }}</p>
+                        <p class="payment-success-qris-amount">Rp {{ number_format($activeDetail['total'], 0, ',', '.') }}</p>
+                        <p class="payment-success-order">{{ $activeDetail['order_number'] }}</p>
+                        <div class="qris-qr-wrap">{!! $activeQrisImage !!}</div>
+                        <a href="data:image/svg+xml;base64,{{ base64_encode($activeQrisImage) }}" download="qris-pembayaran-{{ $activeDetail['name'] }}.svg" class="qris-download-btn">
+                            <i class="bi bi-download"></i> Download QRIS
+                        </a>
+                    </div>
+                    <p class="payment-success-message payment-success-message-spaced">
+                        Kasir akan memverifikasi tiap pembayaran sebelum pesanan diproses.
+                    </p>
                 @else
                     <div class="payment-success-split-list">
                         @foreach($splitOrderDetails as $detail)
-                            <p class="payment-success-order">{{ $detail['order_number'] }}</p>
+                            <div class="payment-success-split-row">
+                                <span class="split-row-name">{{ $detail['name'] }}</span>
+                                <span class="split-row-code">{{ $detail['order_number'] }}</span>
+                            </div>
                         @endforeach
                     </div>
                     <p class="payment-success-message">

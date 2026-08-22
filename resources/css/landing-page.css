@@ -1516,30 +1516,94 @@ h1, h2, h3 {
     max-width: 220px;
 }
 
+.payment-success-split-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    text-align: left;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1rem;
+    margin: 0.25rem 0 1.25rem;
+}
+
+.payment-success-split-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.payment-success-split-row .split-row-name {
+    font-weight: 700;
+    color: var(--color-text-main);
+    font-size: 0.88rem;
+}
+
+.payment-success-split-row .split-row-code {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
 .payment-split-tabs {
     display: flex;
-    gap: 4px;
+    gap: 6px;
     overflow-x: auto;
     max-width: 100%;
-    margin-bottom: 0.75rem;
+    padding-bottom: 2px;
+    margin-top: 0.25rem;
 }
 
 .payment-split-tab {
     flex-shrink: 0;
-    padding: 8px 14px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-full);
     background: var(--color-bg-secondary);
     color: var(--color-text-muted);
-    font-size: 13px;
+    font-size: 0.82rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: var(--transition-normal);
 }
 
 .payment-split-tab.active {
-    background: var(--color-card-bg);
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+}
+
+.payment-success-qris-card {
+    width: 100%;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem 1.35rem;
+    text-align: center;
+    margin-top: 0.85rem;
+}
+
+.payment-success-qris-name {
+    font-weight: 700;
     color: var(--color-text-main);
-    font-weight: 600;
-    border-color: var(--color-primary);
+    font-size: 0.92rem;
+}
+
+.payment-success-qris-amount {
+    font-weight: 800;
+    color: var(--color-accent);
+    font-size: 1.15rem;
+    margin-top: 0.15rem;
+}
+
+.payment-success-qris-card .qris-download-btn {
+    background-color: var(--color-card-bg);
+}
+
+.payment-success-message-spaced {
+    margin-top: 0.85rem;
 }
 
 /* Reduced Motion */
