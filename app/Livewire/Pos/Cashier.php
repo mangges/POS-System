@@ -16,6 +16,9 @@ use App\Enum\Orders\OrderStatus;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
+use App\Enum\Shifts\ShiftStatus;
+use App\Models\Shift;
+use App\Services\Shift\ShiftService;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +37,8 @@ class Cashier extends Component
     public array $confirmedPayments = [];
     public ?int $currentOrderId = null;
     public string $orderType = 'dine-in';
+    public ?Shift $activeShift = null;
+    public string $shiftOpeningCash = '';
 
     public $activeDraft = null;
     #[Locked]
@@ -51,9 +56,12 @@ class Cashier extends Component
     }
     use PaymentMethodSelection;
 
-    public function boot(OrderService $orderService)
+    protected ShiftService $shiftService;
+
+    public function boot(OrderService $orderService, ShiftService $shiftService)
     {
         $this->orderService = $orderService;
+        $this->shiftService = $shiftService;
     }
 
     public function mount()
@@ -61,6 +69,23 @@ class Cashier extends Component
         $this->categories = Category::all();
         $this->loadProducts();
         $this->ensureActivePaymentMethod();
+        $this->activeShift = Shift::where('user_id', Auth::id())->where('status', ShiftStatus::Open)->first();
+    }
+
+    public function openShift(): void
+    {
+        $this->validate([
+            'shiftOpeningCash' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        try {
+            $this->activeShift = $this->shiftService->open(Auth::id(), (float) $this->shiftOpeningCash);
+        } catch (\Exception $e) {
+            $this->addError('shiftOpeningCash', $e->getMessage());
+            return;
+        }
+
+        $this->shiftOpeningCash = '';
     }
 
     public function updatedPaymentMethod(): void

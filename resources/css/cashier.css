@@ -1603,3 +1603,108 @@
 .payment-split-tab.is-paid i {
     margin-right: 4px;
 }
+
+.shift-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    background-color: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    margin-right: 10px;
+}
+
+.shift-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--color-success);
+    flex-shrink: 0;
+}
+
+.shift-gate {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg-body);
+}
+
+.shift-gate-card {
+    width: 100%;
+    max-width: 380px;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-lg);
+    padding: 32px 28px;
+    text-align: center;
+}
+
+.shift-gate-icon {
+    font-size: 32px;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+}
+
+.shift-gate-card h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+.shift-gate-card p {
+    margin: 0 0 20px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.shift-gate-error {
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger-text);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+.shift-gate-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.shift-gate-form label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.shift-gate-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    color: var(--color-text-main);
+}
+
+.shift-gate-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.shift-gate-submit {
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+}

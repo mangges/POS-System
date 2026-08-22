@@ -1,4 +1,5 @@
 <div class="pos-layout">
+@if($activeShift)
     <!-- Top Header -->
     <header class="pos-header">
         <div class="header-brand">
@@ -9,6 +10,10 @@
         </div>
 
         <div class="header-user">
+            <div class="shift-badge">
+                <span class="shift-badge-dot"></span>
+                <span>Shift Aktif &middot; Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }} &middot; {{ $activeShift->opened_at->format('H:i') }}</span>
+            </div>
             <div class="user-avatar">
                 {{ $this->userInitials }}
             </div>
@@ -214,6 +219,28 @@
             @endif
         </div>
     </div>
+@else
+    <div class="shift-gate">
+        <div class="shift-gate-card">
+            <div class="shift-gate-icon"><i class="bi bi-safe2-fill"></i></div>
+            <h2>Buka Shift</h2>
+            <p>Masukkan modal awal kas sebelum mulai melayani transaksi.</p>
+
+            @error('shiftOpeningCash')
+                <div class="shift-gate-error">{{ $message }}</div>
+            @enderror
+
+            <form wire:submit.prevent="openShift" class="shift-gate-form">
+                <label for="shiftOpeningCash">Modal Awal (Rp)</label>
+                <input type="number" step="0.01" min="0" id="shiftOpeningCash" wire:model="shiftOpeningCash" class="shift-gate-input" placeholder="0" autofocus>
+                <button type="submit" class="checkout-btn shift-gate-submit">
+                    <i class="bi bi-unlock-fill"></i>
+                    <span>Buka Shift</span>
+                </button>
+            </form>
+        </div>
+    </div>
+@endif
 </div>
 
 <script>
