@@ -17,7 +17,13 @@
         </div>
 
         <label for="cashMovementAmount">Nominal (Rp)</label>
-        <input type="number" step="0.01" min="0" id="cashMovementAmount" wire:model="cashMovementAmount" class="shift-gate-input" placeholder="0">
+        <x-currency-input
+            model="cashMovementAmount"
+            id="cashMovementAmount"
+            class="shift-gate-input"
+            placeholder="Rp 0"
+            autofocus
+        />
         @error('cashMovementAmount') <div class="shift-gate-error">{{ $message }}</div> @enderror
 
         <label for="cashMovementReason">Alasan</label>

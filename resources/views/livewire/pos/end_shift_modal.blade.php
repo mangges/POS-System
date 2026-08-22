@@ -11,7 +11,13 @@
         <input type="text" class="shift-gate-input" value="Rp {{ number_format($endShiftExpectedCash ?? 0, 0, ',', '.') }}" disabled>
 
         <label for="endShiftActualCash">Actual Cash (hasil hitung fisik)</label>
-        <input type="number" step="0.01" min="0" id="endShiftActualCash" wire:model="endShiftActualCash" class="shift-gate-input" placeholder="0">
+        <x-currency-input
+            model="endShiftActualCash"
+            id="endShiftActualCash"
+            class="shift-gate-input"
+            placeholder="Rp 0"
+            autofocus
+        />
         @error('endShiftActualCash') <div class="shift-gate-error">{{ $message }}</div> @enderror
 
         <label for="endShiftNote">Catatan (opsional)</label>

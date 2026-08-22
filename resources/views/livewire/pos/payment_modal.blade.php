@@ -112,17 +112,13 @@
         <div class="input-received-group">
             <label class="input-label">Uang Diterima (Cash Received)</label>
             <div class="input-wrapper">
-                <div class="input-prefix">
-                    <span>Rp</span>
-                </div>
-                <input
-                    type="text"
-                    inputmode="numeric"
+                <x-currency-input
+                    model="cashReceived"
                     id="cashReceived"
                     class="input-cash using-price-input"
-                    placeholder="0"
-                    x-on:input="$wire.set('cashReceived', unformatPrice($event.target.value))">
-                <input type="hidden" id="cashReceived_raw" wire:model="cashReceived">
+                    placeholder="Rp 0"
+                    autofocus
+                />
             </div>
         </div>
         @endif
