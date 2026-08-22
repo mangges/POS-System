@@ -568,4 +568,78 @@ class CashierSplitBillTest extends TestCase
 
         $this->assertSame(22200, $component->instance()->previewQrisAmount);
     }
+
+    public function test_closing_payment_modal_mid_split_resets_state_and_leaves_orders_in_drafts(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->call('closePaymentModal');
+
+        $component->assertSet('activeSplitIndex', null)
+            ->assertSet('splitGroups', [])
+            ->assertSet('splitMode', false)
+            ->assertSet('cart', []);
+
+        $this->assertSame(2, \App\Models\Order::where('status', \App\Enum\Orders\OrderStatus::Pending)->count());
+    }
+
+    public function test_closing_payment_modal_outside_split_mode_keeps_cart_intact(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->set('customerName', 'Budi')
+            ->call('checkout')
+            ->call('closePaymentModal');
+
+        $component->assertSet('activeSplitIndex', null);
+        $this->assertNotEmpty($component->instance()->cart);
+    }
+
+    public function test_delete_draft_refuses_to_delete_a_completed_order(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->set('customerName', 'Budi')
+            ->call('checkout')
+            ->set('cashReceived', 25000)
+            ->call('finalizeOrder');
+
+        $order = \App\Models\Order::where('customer_name', 'Budi')->first();
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $order->fresh()->status);
+
+        $component->call('deleteDraft', $order->id);
+
+        $this->assertNotNull(\App\Models\Order::find($order->id));
+        $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $order->fresh()->status);
+    }
+
+    public function test_active_split_index_cannot_be_set_directly_from_the_client(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi');
+
+        $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+
+        $component->set('activeSplitIndex', 0);
+    }
 }

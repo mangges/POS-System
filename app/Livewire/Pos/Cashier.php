@@ -5,6 +5,7 @@ namespace App\Livewire\Pos;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 
 use App\Models\Category;
@@ -35,6 +36,7 @@ class Cashier extends Component
     public string $orderType = 'dine-in';
 
     public $activeDraft = null;
+    #[Locked]
     public ?int $activeSplitIndex = null;
 
     public $showPaymentModal = false;
@@ -140,6 +142,11 @@ class Cashier extends Component
     {
         DB::transaction(function () use ($id) {
             $order = Order::findOrFail($id);
+
+            if ($order->status !== OrderStatus::Pending) {
+                return;
+            }
+
             $payment = $order->payment;
 
             $order->payment_id = null;
@@ -345,12 +352,7 @@ class Cashier extends Component
         });
 
         $this->activeDraft = null;
-        $this->activeSplitIndex = 0;
-        $this->currentOrderId = $this->splitGroups[0]['order_id'];
-        $this->paymentMethod = 'cash';
-        $this->paymentConfirmed = false;
-        $this->cashReceived = null;
-        $this->ensureActivePaymentMethod();
+        $this->switchSplitTab(0);
         $this->showPaymentModal = true;
     }
 
@@ -430,6 +432,11 @@ class Cashier extends Component
 
     public function closePaymentModal()
     {
+        if ($this->activeSplitIndex !== null) {
+            $this->resetCashier();
+            $this->reset(['splitGroups', 'splitMode', 'activeSplitIndex']);
+        }
+
         $this->showPaymentModal = false;
         $this->showQrisPreviewModal = false;
         $this->previewQrisAmount = null;
