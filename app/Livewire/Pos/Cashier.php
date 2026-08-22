@@ -180,6 +180,11 @@ class Cashier extends Component
 
     public function openQrisPreviewModal()
     {
+        $this->previewQrisAmount = (int) round(
+            $this->activeSplitIndex !== null
+                ? $this->splitGroupTotal($this->activeSplitIndex)
+                : $this->total
+        );
         $this->showQrisPreviewModal = true;
     }
 

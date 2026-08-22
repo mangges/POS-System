@@ -538,4 +538,34 @@ class CashierSplitBillTest extends TestCase
         $this->assertSame(\App\Enum\Orders\OrderStatus::Completed, $andi->fresh()->status);
         $this->assertTrue($andiPaidAt->equalTo($andi->fresh()->updated_at));
     }
+
+    public function test_open_qris_preview_modal_uses_active_split_group_total(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('incrementQuantity', 0) // qty 2
+            ->call('addSplitGroup', 'Andi')
+            ->call('addSplitGroup', 'Budi')
+            ->call('assignUnitToGroup', 0, $product->id)
+            ->call('assignUnitToGroup', 1, $product->id)
+            ->call('checkoutSplit')
+            ->call('openQrisPreviewModal');
+
+        $this->assertSame(22200, $component->instance()->previewQrisAmount);
+    }
+
+    public function test_open_qris_preview_modal_uses_cart_total_outside_split_mode(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->call('openQrisPreviewModal');
+
+        $this->assertSame(22200, $component->instance()->previewQrisAmount);
+    }
 }
