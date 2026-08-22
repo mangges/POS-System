@@ -17,7 +17,7 @@ class OrderService
         private CartCalculatorService $cartCalculatorService
     ) {}
 
-    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null, string $paymentMethod = 'cash'): Order
+    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null, string $paymentMethod = 'cash', ?int $shiftId = null): Order
     {
         $cartSubtotal = $this->cartCalculatorService->subtotal($cartItems);
         $cartTax = $this->cartCalculatorService->tax($cartSubtotal);
@@ -37,13 +37,14 @@ class OrderService
             $order = Order::findOrFail($activeDraft);
             $order->update($data);
         } else {
-            $order = DB::transaction(function () use ($data, $tableId) {
+            $order = DB::transaction(function () use ($data, $tableId, $shiftId) {
                 $data['table_id'] = $tableId;
                 $data['customer_id'] = null;
                 $data['status'] = OrderStatus::Pending;
                 $data['payment_id'] = null;
                 $data['order_number'] = $this->createOrderNumber();
                 $data['user_id'] = Auth::id();
+                $data['shift_id'] = $shiftId;
 
                 return Order::create($data);
             });
@@ -99,7 +100,7 @@ class OrderService
         }
     }
 
-    public function finalizeOrder(?int $orderId, string $paymentMethod, ?float $cashReceived = null, ?string $orderType = null): Order
+    public function finalizeOrder(?int $orderId, string $paymentMethod, ?float $cashReceived = null, ?string $orderType = null, ?int $shiftId = null): Order
     {
         $order = Order::find($orderId);
         $payment = $order->payment;
@@ -115,6 +116,7 @@ class OrderService
             'payment_method' => $paymentMethod,
             'order_type' => $orderType,
             'token' => $token,
+            'shift_id' => $order->shift_id ?? $shiftId,
         ]);
 
         $payment->update([

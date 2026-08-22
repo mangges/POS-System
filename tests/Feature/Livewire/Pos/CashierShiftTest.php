@@ -1,0 +1,156 @@
+<?php
+
+namespace Tests\Feature\Livewire\Pos;
+
+use App\Enum\Shifts\ShiftStatus;
+use App\Livewire\Pos\Cashier;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Shift;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class CashierShiftTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function createProduct(string $name, float $price): Product
+    {
+        $category = Category::firstOrCreate(['slug' => 'food'], ['name' => 'Food']);
+
+        return Product::create([
+            'category_id' => $category->id,
+            'name' => $name,
+            'price' => $price,
+            'has_recipe' => false,
+            'stock' => 10,
+            'is_out_of_stock' => false,
+            'destination' => 'kitchen',
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_renders_blocking_screen_when_no_active_shift(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->assertSee('Buka Shift')
+            ->assertDontSee('Nasi Goreng');
+    }
+
+    public function test_renders_pos_normally_when_shift_active(): void
+    {
+        $user = User::factory()->create();
+        Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+        $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->assertSee('Nasi Goreng')
+            ->assertDontSee('Buka Shift');
+    }
+
+    public function test_opening_a_shift_creates_it_and_reveals_the_pos(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $this->createProduct('Nasi Goreng', 20000);
+
+        Livewire::test(Cashier::class)
+            ->set('shiftOpeningCash', '150000')
+            ->call('openShift')
+            ->assertSee('Nasi Goreng')
+            ->assertDontSee('Buka Shift');
+
+        $this->assertSame(1, Shift::count());
+        $this->assertSame(150000.0, (float) Shift::first()->opening_cash);
+    }
+
+    public function test_opening_a_shift_fails_when_one_is_already_open(): void
+    {
+        $user = User::factory()->create();
+        Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+
+        Livewire::test(Cashier::class)
+            ->set('shiftOpeningCash', '50000')
+            ->call('openShift')
+            ->assertHasErrors('shiftOpeningCash');
+
+        $this->assertSame(1, Shift::count());
+    }
+
+    public function test_checkout_stamps_the_created_order_with_the_active_shift(): void
+    {
+        $user = User::factory()->create();
+        $shift = Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+        $product = $this->createProduct('Nasi Goreng', 20000);
+
+        $component = Livewire::test(Cashier::class)
+            ->call('addToCart', $product->id)
+            ->set('customerName', 'Andi')
+            ->call('checkout');
+
+        $orderId = $component->get('currentOrderId');
+
+        $this->assertSame($shift->id, \App\Models\Order::find($orderId)->shift_id);
+    }
+
+    public function test_finalizing_an_order_with_no_shift_attributes_it_to_the_active_shift(): void
+    {
+        $user = User::factory()->create();
+        $shift = Shift::create([
+            'user_id' => $user->id,
+            'opening_cash' => 100000,
+            'status' => ShiftStatus::Open,
+            'opened_at' => now(),
+        ]);
+        $this->actingAs($user);
+
+        // Simulates a table order (created via LandingPage::checkout, which
+        // never stamps shift_id) or a draft resumed from before the shift opened.
+        $order = \App\Models\Order::create([
+            'order_number' => 'ORD-' . uniqid(),
+            'total_amount' => 55000,
+            'tax' => 5000,
+            'discount' => 0,
+            'status' => \App\Enum\Orders\OrderStatus::Pending,
+            'order_type' => 'dine_in',
+            'shift_id' => null,
+        ]);
+        $payment = \App\Models\Payment::create([
+            'order_id' => $order->id,
+            'payment_method' => 'cash',
+            'amount' => 0,
+            'status' => \App\Enum\Orders\PaymentStatus::Pending,
+        ]);
+        $order->update(['payment_id' => $payment->id]);
+
+        Livewire::test(Cashier::class)
+            ->set('currentOrderId', $order->id)
+            ->set('paymentMethod', 'cash')
+            ->set('cashReceived', 60000)
+            ->call('finalizeOrder');
+
+        $this->assertSame($shift->id, $order->fresh()->shift_id);
+    }
+}

@@ -12,10 +12,14 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\CashMovement;
 use App\Enum\Orders\OrderStatus;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
+use App\Enum\Shifts\ShiftStatus;
+use App\Models\Shift;
+use App\Services\Shift\ShiftService;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +38,8 @@ class Cashier extends Component
     public array $confirmedPayments = [];
     public ?int $currentOrderId = null;
     public string $orderType = 'dine-in';
+    public ?Shift $activeShift = null;
+    public string $shiftOpeningCash = '';
 
     public $activeDraft = null;
     #[Locked]
@@ -45,15 +51,26 @@ class Cashier extends Component
     public $showKitchenOrdersModal = false;
     public $showQrisPreviewModal = false;
     public ?int $previewQrisAmount = null;
+    public $showCashMovementModal = false;
+    public string $cashMovementType = 'in';
+    public string $cashMovementAmount = '';
+    public string $cashMovementReason = '';
+    public $showEndShiftModal = false;
+    public ?float $endShiftExpectedCash = null;
+    public string $endShiftActualCash = '';
+    public string $endShiftNote = '';
 
     use CartCalculation {
         addToCart as protected traitAddToCart;
     }
     use PaymentMethodSelection;
 
-    public function boot(OrderService $orderService)
+    protected ShiftService $shiftService;
+
+    public function boot(OrderService $orderService, ShiftService $shiftService)
     {
         $this->orderService = $orderService;
+        $this->shiftService = $shiftService;
     }
 
     public function mount()
@@ -61,6 +78,23 @@ class Cashier extends Component
         $this->categories = Category::all();
         $this->loadProducts();
         $this->ensureActivePaymentMethod();
+        $this->activeShift = Shift::where('user_id', Auth::id())->where('status', ShiftStatus::Open)->first();
+    }
+
+    public function openShift(): void
+    {
+        $this->validate([
+            'shiftOpeningCash' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        try {
+            $this->activeShift = $this->shiftService->open(Auth::id(), (float) $this->shiftOpeningCash);
+        } catch (\Exception $e) {
+            $this->addError('shiftOpeningCash', $e->getMessage());
+            return;
+        }
+
+        $this->shiftOpeningCash = '';
     }
 
     public function updatedPaymentMethod(): void
@@ -131,7 +165,7 @@ class Cashier extends Component
     {
         if (empty($this->cart)) return;
 
-        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+        $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft, shiftId: $this->activeShift?->id);
 
         $this->activeDraft = null;
         $this->reset('cart', 'customerName');
@@ -199,6 +233,70 @@ class Cashier extends Component
     {
         $this->showQrisPreviewModal = false;
         $this->previewQrisAmount = null;
+    }
+
+    public function openCashMovementModal(): void
+    {
+        $this->reset(['cashMovementType', 'cashMovementAmount', 'cashMovementReason']);
+        $this->showCashMovementModal = true;
+    }
+
+    public function closeCashMovementModal(): void
+    {
+        $this->showCashMovementModal = false;
+    }
+
+    public function recordCashMovement(): void
+    {
+        $this->validate([
+            'cashMovementType' => ['required', 'in:in,out'],
+            'cashMovementAmount' => ['required', 'numeric', 'gt:0'],
+            'cashMovementReason' => ['required', 'string', 'min:1'],
+        ]);
+
+        if ($this->activeShift->status !== ShiftStatus::Open) {
+            $this->addError('cashMovementAmount', 'Shift sudah ditutup.');
+            return;
+        }
+
+        CashMovement::create([
+            'shift_id' => $this->activeShift->id,
+            'type' => $this->cashMovementType,
+            'amount' => (float) $this->cashMovementAmount,
+            'reason' => $this->cashMovementReason,
+            'created_by' => Auth::id(),
+        ]);
+
+        $this->showCashMovementModal = false;
+    }
+
+    public function openEndShiftModal(): void
+    {
+        $this->reset(['endShiftActualCash', 'endShiftNote']);
+        $this->endShiftExpectedCash = $this->shiftService->previewExpectedCash($this->activeShift);
+        $this->showEndShiftModal = true;
+    }
+
+    public function closeEndShiftModal(): void
+    {
+        $this->showEndShiftModal = false;
+    }
+
+    public function endShift(): void
+    {
+        $this->validate([
+            'endShiftActualCash' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        try {
+            $this->shiftService->close($this->activeShift, (float) $this->endShiftActualCash, $this->endShiftNote ?: null);
+        } catch (\Exception $e) {
+            $this->addError('endShiftActualCash', $e->getMessage());
+            return;
+        }
+
+        $this->activeShift = null;
+        $this->showEndShiftModal = false;
     }
 
     public function openQrisPreviewForOrder(int $id): void
@@ -322,7 +420,7 @@ class Cashier extends Component
     {
         if (empty($this->cart) || empty($this->customerName)) return;
 
-        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft);
+        $order = $this->orderService->processOrder($this->cart, null, $this->customerName, $this->orderType, $this->activeDraft, shiftId: $this->activeShift?->id);
 
         $this->currentOrderId = $order->id;
         $this->showPaymentModal = true;
@@ -343,7 +441,8 @@ class Cashier extends Component
                     null,
                     $group['name'],
                     $this->orderType,
-                    null
+                    null,
+                    shiftId: $this->activeShift?->id
                 );
 
                 $this->splitGroups[$index]['order_id'] = $order->id;
@@ -394,7 +493,7 @@ class Cashier extends Component
             return;
         }
 
-        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType);
+        $order = $this->orderService->finalizeOrder($this->currentOrderId, $this->paymentMethod, $this->cashReceived, $this->orderType, shiftId: $this->activeShift?->id);
 
         if ($this->activeSplitIndex === null) {
             $this->resetCashier();
