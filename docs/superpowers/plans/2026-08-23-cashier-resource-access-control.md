@@ -155,7 +155,7 @@ class RoleMigrationTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'admin']);
 
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_08_23_000001_assign_roles_to_existing_users.php', '--realpath' => false]);
+        (require database_path('migrations/2026_08_23_000001_assign_roles_to_existing_users.php'))->up();
 
         $this->assertTrue($user->fresh()->hasRole('admin'));
     }
@@ -164,19 +164,19 @@ class RoleMigrationTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'cashier']);
 
-        $this->artisan('migrate', ['--path' => 'database/migrations/2026_08_23_000001_assign_roles_to_existing_users.php', '--realpath' => false]);
+        (require database_path('migrations/2026_08_23_000001_assign_roles_to_existing_users.php'))->up();
 
         $this->assertTrue($user->fresh()->hasRole('cashier'));
     }
 }
 ```
 
-Note: `RefreshDatabase` already runs all migrations (including this new one) before each test via the normal migration path, so re-running it manually in the test is redundant with a fresh DB — but since this migration depends on rows existing in `users` at the time it runs, and `RefreshDatabase` runs migrations before the test body creates users, write the assertion against a **fresh manual insert + re-invocation** as shown above instead of relying on suite-wide migration order.
+Note: `RefreshDatabase` runs every migration (including this new one) once, before the test body ever creates a user — so by the time `User::factory()->create(...)` runs, this migration is already marked "ran" in Laravel's migration tracking table, and re-invoking it through `artisan migrate` would be a no-op ("Nothing to migrate"). This migration file returns an anonymous class instance (`return new class extends Migration {...}`), so `require`-ing the file directly and calling `->up()` on the returned instance re-executes its logic on demand, completely bypassing the migration-tracking table. This is the correct way to test an anonymous-class migration's logic against data created after the schema migration already ran.
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `php artisan test --filter=RoleMigrationTest`
-Expected: FAIL — migration file not found / role not assigned.
+Expected: FAIL — `require database_path('migrations/2026_08_23_000001_assign_roles_to_existing_users.php')` errors because the file doesn't exist yet.
 
 - [ ] **Step 3: Write the seeder**
 
