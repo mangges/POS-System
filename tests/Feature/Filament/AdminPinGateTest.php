@@ -87,4 +87,25 @@ class AdminPinGateTest extends TestCase
             ->call('submit')
             ->assertRedirect('/admin');
     }
+
+    public function test_backslash_normalized_redirect_url_is_rejected(): void
+    {
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'cashier']);
+        Permission::firstOrCreate(['name' => 'access-categories']);
+        User::factory()->create(['pin' => '999999'])->assignRole('admin');
+        $cashier = User::factory()->create(['pin' => '222222']);
+        $cashier->assignRole('cashier');
+        $this->actingAs($cashier);
+
+        Livewire::test(AdminPinGate::class, ['resource' => 'categories', 'redirect' => '/\evil.example.com'])
+            ->set('pin', '999999')
+            ->call('submit')
+            ->assertRedirect('/admin');
+
+        Livewire::test(AdminPinGate::class, ['resource' => 'categories', 'redirect' => '/\/evil.example.com'])
+            ->set('pin', '999999')
+            ->call('submit')
+            ->assertRedirect('/admin');
+    }
 }

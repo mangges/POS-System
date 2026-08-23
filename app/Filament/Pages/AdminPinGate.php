@@ -61,7 +61,9 @@ class AdminPinGate extends Page
 
     protected function safeRedirectUrl(): string
     {
-        if (str_starts_with($this->redirectUrl, '/') && ! str_starts_with($this->redirectUrl, '//')) {
+        $normalized = str_replace('\\', '/', $this->redirectUrl);
+
+        if (str_starts_with($normalized, '/') && ! str_starts_with($normalized, '//')) {
             return $this->redirectUrl;
         }
 
