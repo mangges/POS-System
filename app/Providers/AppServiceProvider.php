@@ -6,9 +6,11 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\RawMaterial;
 use App\Models\StockMovement;
+use App\Models\User;
 use App\Observers\OrderObserver;
 use App\Observers\StockMovementObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(fn (User $user) => $user->hasRole('admin') ? true : null);
+
         Relation::morphMap([
             'product' => Product::class,
             'raw_material' => RawMaterial::class,
