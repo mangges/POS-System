@@ -37,6 +37,11 @@ class PaymentMethodSettings extends Page
 
     public ?array $data = [];
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('access-admin-only');
+    }
+
     public function mount(): void
     {
         $settings = PaymentMethodSetting::all()->keyBy('method');

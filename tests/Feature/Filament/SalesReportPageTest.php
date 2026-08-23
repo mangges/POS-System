@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class SalesReportPageTest extends TestCase
@@ -43,7 +44,10 @@ class SalesReportPageTest extends TestCase
 
     public function test_only_completed_orders_are_counted_and_grouped_by_payment_method(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $this->makeOrder(OrderStatus::Completed->value, 'cash', 55000, 5000);
         $this->makeOrder(OrderStatus::Completed->value, 'qris', 30000, 3000);
@@ -72,7 +76,10 @@ class SalesReportPageTest extends TestCase
 
     public function test_monthly_grouping_produces_one_row_per_calendar_month(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $thisMonthOrder = $this->makeOrder(OrderStatus::Completed->value, 'cash', 50000);
         $thisMonthOrder->forceFill(['created_at' => Carbon::now()])->save();
@@ -107,7 +114,10 @@ class SalesReportPageTest extends TestCase
 
     public function test_csv_export_contains_header_row_and_data(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $this->makeOrder(OrderStatus::Completed->value, 'cash', 50000);
 
@@ -130,7 +140,10 @@ class SalesReportPageTest extends TestCase
 
     public function test_pdf_export_returns_a_pdf(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $this->makeOrder(OrderStatus::Completed->value, 'cash', 50000);
 

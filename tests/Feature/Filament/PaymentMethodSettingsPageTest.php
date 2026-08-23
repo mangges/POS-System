@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class PaymentMethodSettingsPageTest extends TestCase
@@ -35,7 +36,10 @@ class PaymentMethodSettingsPageTest extends TestCase
 
     public function test_admin_can_switch_qris_to_dynamic_mode_and_save(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         Livewire::test(PaymentMethodSettings::class)
             ->set('data.qris_active', true)
@@ -55,7 +59,10 @@ class PaymentMethodSettingsPageTest extends TestCase
 
     public function test_admin_can_deactivate_transfer(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         Livewire::test(PaymentMethodSettings::class)
             ->set('data.transfer_active', false)
@@ -66,7 +73,10 @@ class PaymentMethodSettingsPageTest extends TestCase
 
     public function test_admin_can_deactivate_qris_without_throwing(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         // Deactivating QRIS hides the Radio/FileUpload fields, so Filament's schema
         // dehydration strips `qris_mode`/`qris_static_image` from the form state
@@ -87,7 +97,10 @@ class PaymentMethodSettingsPageTest extends TestCase
 
     public function test_saving_dynamic_qris_with_an_image_that_has_no_qr_code_is_rejected(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         Livewire::test(PaymentMethodSettings::class)
             ->set('data.qris_active', true)
@@ -104,7 +117,10 @@ class PaymentMethodSettingsPageTest extends TestCase
 
     public function test_mount_falls_back_to_defaults_when_qris_row_is_missing(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         PaymentMethodSetting::where('method', 'qris')->delete();
 

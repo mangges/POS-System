@@ -31,6 +31,11 @@ class ProductReport extends Page
 
     public ?array $data = [];
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('access-admin-only');
+    }
+
     public function mount(): void
     {
         $this->form->fill(['period_type' => 'daily']);

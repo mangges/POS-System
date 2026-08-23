@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ProductReportPageTest extends TestCase
@@ -32,7 +33,10 @@ class ProductReportPageTest extends TestCase
 
     public function test_only_items_from_completed_orders_are_counted_and_grouped_by_product(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
         $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
@@ -59,7 +63,10 @@ class ProductReportPageTest extends TestCase
 
     public function test_monthly_grouping_produces_one_row_per_calendar_month_for_the_same_product(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
         $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
@@ -101,7 +108,10 @@ class ProductReportPageTest extends TestCase
 
     public function test_csv_export_contains_header_row_and_data(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
         $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
@@ -124,7 +134,10 @@ class ProductReportPageTest extends TestCase
 
     public function test_csv_export_escapes_product_names_that_look_like_formulas(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
         $product = Product::create(['category_id' => $category->id, 'name' => '=cmd|"/c calc"!A1', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);
@@ -141,7 +154,10 @@ class ProductReportPageTest extends TestCase
 
     public function test_pdf_export_returns_a_pdf(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $category = Category::create(['name' => 'Snacks', 'slug' => 'snacks']);
         $chips = Product::create(['category_id' => $category->id, 'name' => 'Chips', 'price' => 10000, 'has_recipe' => false, 'stock' => 100]);

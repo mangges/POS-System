@@ -25,6 +25,11 @@ class UserResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Users';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('access-admin-only');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);
