@@ -30,7 +30,9 @@ class UserForm
                     ->required()
                     ->dehydrated(false)
                     ->afterStateHydrated(function (Select $component, $record) {
-                        $component->state($record?->getRoleNames()->first());
+                        if ($record) {
+                            $component->state($record->getRoleNames()->first());
+                        }
                     }),
             ]);
     }
