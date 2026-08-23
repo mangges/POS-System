@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class StockMovementResourceTest extends TestCase
@@ -12,7 +13,10 @@ class StockMovementResourceTest extends TestCase
 
     public function test_index_is_reachable(): void
     {
-        $this->actingAs(User::factory()->create());
+        Role::firstOrCreate(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $this->actingAs($user);
 
         $this->get('/admin/stock-movements')->assertSuccessful();
     }
