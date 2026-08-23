@@ -621,7 +621,7 @@ git commit -m "feat: manage spatie roles from the user edit form"
 ### Task 6: Drop the `users.role` column
 
 **Files:**
-- Create: `database/migrations/2026_08_23_000002_drop_role_from_users_table.php`
+- Create: `database/migrations/2026_08_24_000001_drop_role_from_users_table.php`
 - Modify: `app/Models/User.php`
 - Modify: `database/factories/UserFactory.php` (only if it references `role` — confirm by reading the file; as of this plan it does not)
 - Test: `tests/Feature/Models/UserRoleTest.php` (extend)
@@ -637,7 +637,7 @@ Expected: no matches (Tasks 4 and 5 removed the only two call sites).
 
 - [ ] **Step 2: Write the migration**
 
-`database/migrations/2026_08_23_000002_drop_role_from_users_table.php`:
+`database/migrations/2026_08_24_000001_drop_role_from_users_table.php`:
 
 ```php
 <?php
@@ -681,7 +681,7 @@ Expected: all tests pass, including Tasks 2–5's tests (which no longer rely on
 - [ ] **Step 5: Commit**
 
 ```bash
-git add database/migrations/2026_08_23_000002_drop_role_from_users_table.php app/Models/User.php
+git add database/migrations/2026_08_24_000001_drop_role_from_users_table.php app/Models/User.php
 git commit -m "feat: drop legacy users.role column"
 ```
 
