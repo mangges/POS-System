@@ -12,7 +12,7 @@
         <template x-teleport="#pos-shift-topbar">
             <div class="pos-shift-topbar-group">
                 <x-filament::badge color="gray">
-                    Shift Aktif &middot; Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }} &middot; {{ $activeShift->opened_at->format('H:i') }}
+                    Shift Aktif &middot; {{ $activeShift->user->name}}
                 </x-filament::badge>
                 <x-filament::icon-button
                     color="gray"

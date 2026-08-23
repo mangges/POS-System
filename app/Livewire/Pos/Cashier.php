@@ -78,7 +78,7 @@ class Cashier extends Component
         $this->categories = Category::all();
         $this->loadProducts();
         $this->ensureActivePaymentMethod();
-        $this->activeShift = Shift::where('user_id', Auth::id())->where('status', ShiftStatus::Open)->first();
+        $this->activeShift = Shift::with('user')->where('user_id', Auth::id())->where('status', ShiftStatus::Open)->first();
     }
 
     public function openShift(): void
