@@ -51,7 +51,8 @@ class Login extends Component
         if ($user) {
             Auth::login($user);
             session()->regenerate();
-            if ($user->role === 'admin') {
+            $user->syncPermissions([]);
+            if ($user->hasRole('admin')) {
                 return redirect('/admin');
             }
             return redirect('/cashier');
@@ -70,9 +71,10 @@ class Login extends Component
 
         if (Auth::attempt($credentials, $this->remember)) {
             session()->regenerate();
-            
+
             $user = Auth::user();
-            if (in_array($user->role, ['admin'])) {
+            $user->syncPermissions([]);
+            if ($user->hasRole('admin')) {
                 return redirect('/admin');
             }
             return redirect('/cashier');
