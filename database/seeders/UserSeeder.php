@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -12,25 +12,20 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        \DB::table('users')->insert([
-            [
-                'name' => 'Administrator',
-                'email' => 'admin@pos.com',
-                'password' => \Hash::make('password'),
-                'pin' => '123456',
-                'role' => 'admin',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Cashier 1',
-                'email' => 'cashier@pos.com',
-                'password' => \Hash::make('password'),
-                'pin' => '654321',
-                'role' => 'cashier',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
+        $admin = User::create([
+            'name' => 'Administrator',
+            'email' => 'admin@pos.com',
+            'password' => \Hash::make('password'),
+            'pin' => '123456',
         ]);
+        $admin->assignRole('admin');
+
+        $cashier = User::create([
+            'name' => 'Cashier 1',
+            'email' => 'cashier@pos.com',
+            'password' => \Hash::make('password'),
+            'pin' => '654321',
+        ]);
+        $cashier->assignRole('cashier');
     }
 }

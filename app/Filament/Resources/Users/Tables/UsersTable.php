@@ -24,7 +24,8 @@ class UsersTable
                     ->sortable(),
                 TextColumn::make('pin')
                     ->searchable(),
-                TextColumn::make('role')
+                TextColumn::make('roles.name')
+                    ->label('Role')
                     ->badge(),
                 TextColumn::make('created_at')
                     ->dateTime()

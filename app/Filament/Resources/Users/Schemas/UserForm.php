@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -21,13 +20,18 @@ class UserForm
                     ->required(),
                 TextInput::make('password')
                     ->password()
-                    ->required(),
+                    ->required(fn (string $operation): bool => $operation === 'create')
+                    ->dehydrated(fn ($state) => filled($state)),
                 TextInput::make('pin')
                     ->default(null),
                 Select::make('role')
                     ->options(['admin' => 'Admin', 'cashier' => 'Cashier'])
                     ->default('cashier')
-                    ->required(),
+                    ->required()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(function (Select $component, $record) {
+                        $component->state($record?->getRoleNames()->first());
+                    }),
             ]);
     }
 }
