@@ -21,10 +21,10 @@ class AdminPinGate extends Page
 
     public string $pin = '';
 
-    public function mount(string $resource = '', string $redirect = ''): void
+    public function mount(?string $resource = null, ?string $redirect = null): void
     {
-        $this->resource = $resource;
-        $this->redirectUrl = $redirect;
+        $this->resource = $resource ?? request()->query('resource', '');
+        $this->redirectUrl = $redirect ?? request()->query('redirect', '');
     }
 
     public function form(Schema $schema): Schema

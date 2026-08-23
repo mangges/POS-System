@@ -26,7 +26,7 @@ class EnsureResourcePinUnlocked
             if (str_contains($routeName, "resources.{$slug}.") && $user?->cannot($permission)) {
                 return redirect(route('filament.admin.pages.admin-pin-gate', [
                     'resource' => $slug,
-                    'redirect' => $request->fullUrl(),
+                    'redirect' => $request->getRequestUri(),
                 ]));
             }
         }
