@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Http\Middleware\EnsureResourcePinUnlocked;
 use App\Models\User;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -41,6 +42,11 @@ class AdminPinGate extends Page
 
     public function submit(): void
     {
+        if (! array_key_exists($this->resource, EnsureResourcePinUnlocked::PROTECTED)) {
+            Notification::make()->danger()->title('Resource tidak valid')->send();
+            return;
+        }
+
         $admin = User::role('admin')->where('pin', $this->pin)->first();
 
         if (! $admin) {
@@ -50,6 +56,15 @@ class AdminPinGate extends Page
 
         auth()->user()->syncPermissions(["access-{$this->resource}"]);
 
-        $this->redirect($this->redirectUrl);
+        $this->redirect($this->safeRedirectUrl());
+    }
+
+    protected function safeRedirectUrl(): string
+    {
+        if (str_starts_with($this->redirectUrl, '/') && ! str_starts_with($this->redirectUrl, '//')) {
+            return $this->redirectUrl;
+        }
+
+        return '/admin';
     }
 }

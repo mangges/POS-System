@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureResourcePinUnlocked
 {
-    protected const array PROTECTED = [
+    public const array PROTECTED = [
         'categories' => 'access-categories',
         'products' => 'access-products',
         'raw-materials' => 'access-raw-materials',
