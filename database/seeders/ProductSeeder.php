@@ -25,6 +25,7 @@ class ProductSeeder extends Seeder
                 'price' => 25000,
                 'has_recipe' => true,
                 'stock' => null,
+                'min_stock' => 0,
                 'is_out_of_stock' => false,
                 'destination' => 'bar',
             ],
@@ -35,6 +36,7 @@ class ProductSeeder extends Seeder
                 'price' => 35000,
                 'has_recipe' => true,
                 'stock' => null,
+                'min_stock' => 0,
                 'is_out_of_stock' => false,
                 'destination' => 'kitchen',
             ],
@@ -45,15 +47,39 @@ class ProductSeeder extends Seeder
                 'price' => 15000,
                 'has_recipe' => false,
                 'stock' => 50,
+                'min_stock' => 10,
+                'is_out_of_stock' => false,
+                'destination' => 'kitchen',
+            ],
+            [
+                'category_id' => $beverageId,
+                'name' => 'Es Teh Manis',
+                'description' => 'Teh manis dingin diseduh langsung',
+                'price' => 10000,
+                'has_recipe' => true,
+                'stock' => null,
+                'min_stock' => 0,
+                'is_out_of_stock' => false,
+                'destination' => 'bar',
+            ],
+            [
+                'category_id' => $snackId,
+                'name' => 'Roti Bakar Coklat',
+                'description' => 'Roti bakar coklat dipanggang fresh',
+                'price' => 12000,
+                'has_recipe' => true,
+                'stock' => null,
+                'min_stock' => 0,
                 'is_out_of_stock' => false,
                 'destination' => 'kitchen',
             ],
         ];
 
         foreach ($products as $product) {
-            $product['created_at'] = now();
-            $product['updated_at'] = now();
-            \DB::table('products')->insert($product);
+            \DB::table('products')->updateOrInsert(
+                ['name' => $product['name']],
+                [...$product, 'updated_at' => now(), 'created_at' => now()]
+            );
         }
     }
 }

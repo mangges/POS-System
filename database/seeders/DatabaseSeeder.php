@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             TableSeeder::class,
             RawMaterialSeeder::class,
             ProductSeeder::class,
+            RecipeSeeder::class,
         ]);
     }
 }

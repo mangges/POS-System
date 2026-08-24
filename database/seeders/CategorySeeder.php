@@ -19,9 +19,10 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            $category['created_at'] = now();
-            $category['updated_at'] = now();
-            \DB::table('categories')->insert($category);
+            \DB::table('categories')->updateOrInsert(
+                ['slug' => $category['slug']],
+                ['name' => $category['name'], 'updated_at' => now(), 'created_at' => now()]
+            );
         }
     }
 }
