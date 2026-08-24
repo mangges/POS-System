@@ -1,10 +1,11 @@
 @php
-    $customTitle = isset($exception) && $exception instanceof \App\Exceptions\PosAbortException ? $exception->title : null;
-    $customMessage = isset($exception) ? trim($exception->getMessage()) : '';
+    $isPosAbort = isset($exception) && $exception instanceof \App\Exceptions\PosAbortException;
+    $customTitle = $isPosAbort ? $exception->title : null;
+    $customMessage = $isPosAbort ? trim($exception->getMessage()) : '';
     $statusCode = isset($exception) && method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : null;
     $safeToShow = $customMessage !== '' && ($statusCode === null || $statusCode < 500 || config('app.debug'));
     $headline = $customTitle ?? trim($__env->yieldContent('message'));
-    $showCta = isset($exception) && $exception instanceof \App\Exceptions\PosAbortException ? $exception->showCta : true;
+    $showCta = $isPosAbort ? $exception->showCta : false;
 @endphp
 <!DOCTYPE html>
 <html lang="id">
