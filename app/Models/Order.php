@@ -44,6 +44,7 @@ class Order extends Model
         'customer_name',
         'user_id',
         'shift_id',
+        'guest_session_id',
         'total_amount',
         'tax',
         'discount',
@@ -64,6 +65,11 @@ class Order extends Model
     public function table(): BelongsTo
     {
         return $this->belongsTo(Table::class);
+    }
+
+    public function guestSession(): BelongsTo
+    {
+        return $this->belongsTo(GuestSession::class);
     }
 
     public function customer(): BelongsTo
