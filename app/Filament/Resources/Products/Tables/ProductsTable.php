@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Products\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -27,7 +28,9 @@ class ProductsTable
                     ->boolean(),
                 TextColumn::make('stock')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->color(fn ($record) => $record->stock !== null && $record->stock <= $record->min_stock ? 'danger' : null)
+                    ->icon(fn ($record) => $record->stock !== null && $record->stock <= $record->min_stock ? Heroicon::ExclamationTriangle : null),
                 TextColumn::make('min_stock')
                     ->numeric()
                     ->sortable(),

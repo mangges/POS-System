@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RawMaterials\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -21,7 +22,9 @@ class RawMaterialsTable
                     ->searchable(),
                 TextColumn::make('stock')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->color(fn ($record) => $record->stock <= $record->min_stock ? 'danger' : null)
+                    ->icon(fn ($record) => $record->stock <= $record->min_stock ? Heroicon::ExclamationTriangle : null),
                 TextColumn::make('min_stock')
                     ->numeric()
                     ->sortable(),
