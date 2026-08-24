@@ -2,8 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Enum\Orders\OrderStatus;
 use App\Http\Middleware\EnsureResourcePinUnlocked;
 use App\Http\Middleware\PreventLogoutWithOpenShift;
+use App\Models\Order;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -47,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon(Heroicon::OutlinedComputerDesktop)
                     ->sort(0)
                     ->url('/cashier')
+                    ->badge(fn (): ?string => ($count = Order::where('status', OrderStatus::Pending)->count()) ? (string) $count : null, 'success')
                     ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.cashier')),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
