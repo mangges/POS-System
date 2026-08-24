@@ -23,7 +23,14 @@
 
     <div class="pos-bell-panel" x-show="open" x-cloak @click.outside="open = false"
         x-transition:enter="pos-bell-panel-enter" x-transition:enter-start="pos-bell-panel-enter-start" x-transition:enter-end="pos-bell-panel-enter-end">
-        <div class="pos-bell-panel-header">Notifikasi</div>
+        <div class="pos-bell-panel-header">
+            <span>Notifikasi</span>
+            <label class="pos-bell-switch" x-data="{ subscribed: false, busy: false }" x-init="pushSubscriptionState().then(v => subscribed = v)">
+                <input type="checkbox" :checked="subscribed" :disabled="busy" aria-label="Aktifkan notifikasi"
+                    @click.prevent="busy = true; togglePush(subscribed).then(v => subscribed = v).finally(() => busy = false)">
+                <span class="pos-bell-switch-track"><span class="pos-bell-switch-thumb"></span></span>
+            </label>
+        </div>
         <template x-if="$store.notifBell.items.length === 0">
             <div class="pos-bell-empty">Belum ada notifikasi</div>
         </template>
@@ -94,11 +101,56 @@
     .pos-bell-panel-enter-end { opacity: 1; transform: translateY(0); }
 
     .pos-bell-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
         padding: 0.75rem 1rem;
         font-weight: 600;
         font-size: 0.85rem;
         border-bottom: 1px solid var(--color-border, #ececec);
     }
+
+    .pos-bell-switch {
+        position: relative;
+        display: inline-block;
+        flex-shrink: 0;
+        width: 36px;
+        height: 20px;
+    }
+
+    .pos-bell-switch input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .pos-bell-switch input:disabled { cursor: wait; }
+
+    .pos-bell-switch-track {
+        position: absolute;
+        inset: 0;
+        background: var(--color-border, #ececec);
+        border-radius: var(--radius-full, 9999px);
+        transition: background 0.15s ease;
+    }
+
+    .pos-bell-switch-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        transition: transform 0.15s ease;
+    }
+
+    .pos-bell-switch input:checked ~ .pos-bell-switch-track { background: #2f9e44; }
+    .pos-bell-switch input:checked ~ .pos-bell-switch-track .pos-bell-switch-thumb { transform: translateX(16px); }
 
     .pos-bell-empty {
         padding: 1.5rem 1rem;

@@ -7,9 +7,6 @@
         <div class="table-number">
             <span>{{ $table->name }}</span>
         </div>
-        <button type="button" class="pos-bell-trigger" style="margin-left:auto" onclick="enablePush()" aria-label="Aktifkan notifikasi">
-            <i class="bi bi-bell-fill"></i>
-        </button>
         <x-notification-bell :qr-token="$table->qr_token" />
     </nav>
 
@@ -695,13 +692,31 @@
         });
     </script>
     <script>
-        window.enablePush = async function enablePush() {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        window.pushSubscriptionState = async function pushSubscriptionState() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+
+            const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+            if (!reg) return false;
+
+            const sub = await reg.pushManager.getSubscription();
+            return !!sub;
+        };
+
+        window.togglePush = async function togglePush(currentlySubscribed) {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+
+            if (currentlySubscribed) {
+                const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+                const sub = reg && await reg.pushManager.getSubscription();
+                if (sub) await sub.unsubscribe();
+                return false;
+            }
 
             const permission = await Notification.requestPermission();
-            if (permission !== 'granted') return;
+            if (permission !== 'granted') return false;
 
-            const reg = await navigator.serviceWorker.register('/sw.js');
+            await navigator.serviceWorker.register('/sw.js');
+            const reg = await navigator.serviceWorker.ready;
             const sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: '{{ config('webpush.vapid.public_key') }}',
@@ -712,6 +727,8 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify(sub),
             });
+
+            return true;
         };
     </script>
 @endpush
