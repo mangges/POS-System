@@ -7,6 +7,9 @@
         <div class="table-number">
             <span>{{ $table->name }}</span>
         </div>
+        <button type="button" class="pos-bell-trigger" style="margin-left:auto" onclick="enablePush()" aria-label="Aktifkan notifikasi">
+            <i class="bi bi-bell-fill"></i>
+        </button>
         <x-notification-bell :qr-token="$table->qr_token" />
     </nav>
 
@@ -690,5 +693,25 @@
                     Livewire.dispatch('order-status-updated', { orderId: e.order_id, status: e.status });
                 });
         });
+    </script>
+    <script>
+        window.enablePush = async function enablePush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') return;
+
+            const reg = await navigator.serviceWorker.register('/sw.js');
+            const sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: '{{ config('webpush.vapid.public_key') }}',
+            });
+
+            await fetch('/menu/{{ request()->route('session_token') }}/push-subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify(sub),
+            });
+        };
     </script>
 @endpush
