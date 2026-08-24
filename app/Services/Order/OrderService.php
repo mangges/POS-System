@@ -17,7 +17,7 @@ class OrderService
         private CartCalculatorService $cartCalculatorService
     ) {}
 
-    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null, string $paymentMethod = 'cash', ?int $shiftId = null): Order
+    public function processOrder(array $cartItems, ?int $tableId = null, ?string $customerName = null, ?string $orderType = null, ?int $activeDraft = null, string $paymentMethod = 'cash', ?int $shiftId = null, ?int $guestSessionId = null): Order
     {
         $cartSubtotal = $this->cartCalculatorService->subtotal($cartItems);
         $cartTax = $this->cartCalculatorService->tax($cartSubtotal);
@@ -37,7 +37,7 @@ class OrderService
             $order = Order::findOrFail($activeDraft);
             $order->update($data);
         } else {
-            $order = DB::transaction(function () use ($data, $tableId, $shiftId) {
+            $order = DB::transaction(function () use ($data, $tableId, $shiftId, $guestSessionId) {
                 $data['table_id'] = $tableId;
                 $data['customer_id'] = null;
                 $data['status'] = OrderStatus::Pending;
@@ -45,6 +45,7 @@ class OrderService
                 $data['order_number'] = $this->createOrderNumber();
                 $data['user_id'] = Auth::id();
                 $data['shift_id'] = $shiftId;
+                $data['guest_session_id'] = $guestSessionId;
 
                 return Order::create($data);
             });

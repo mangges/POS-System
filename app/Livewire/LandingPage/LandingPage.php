@@ -183,7 +183,8 @@ class LandingPage extends Component
             $this->customerName,
             $this->orderType,
             null,
-            $this->paymentMethod
+            $this->paymentMethod,
+            guestSessionId: $guestSession->id,
         );
 
         $this->currentOrderId = $order->id;
@@ -216,7 +217,8 @@ class LandingPage extends Component
                     $group['name'],
                     $this->orderType,
                     null,
-                    $this->paymentMethod
+                    $this->paymentMethod,
+                    guestSessionId: $guestSession->id,
                 );
 
                 $orderDetails[] = [
