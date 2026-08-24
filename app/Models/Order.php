@@ -11,6 +11,7 @@ use App\Enum\Orders\OrderStatus;
 use App\Events\OrderPlaced;
 use App\Events\OrderStatusUpdated;
 use App\Notifications\OrderStatusPushNotification;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
 class Order extends Model
@@ -20,11 +21,14 @@ class Order extends Model
     protected static function booted(): void
     {
         static::created(function (Order $order) {
-            Notification::make()
-                ->title('Order baru: ' . $order->order_number)
-                ->body($order->customer_name . ' — Rp ' . number_format((float) $order->total_amount, 0, ',', '.'))
-                ->broadcast(User::all())
-                ->sendToDatabase(User::all());
+            if ($order->guest_session_id) {
+                Notification::make()
+                    ->title('Order baru: ' . $order->order_number)
+                    ->body($order->customer_name . ' — Rp ' . number_format((float) $order->total_amount, 0, ',', '.'))
+                    ->actions([Action::make('view')->label('Lihat')->url('/cashier')])
+                    ->broadcast(User::whereHas('shifts', fn ($q) => $q->where('status', 'open'))->get())
+                    ->sendToDatabase(User::all());
+            }
 
             if ($order->table_id) {
                 broadcast(new OrderPlaced($order));
