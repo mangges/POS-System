@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Reports;
 use App\Enum\Orders\PaymentStatus;
 use App\Enum\Payments\PaymentMethod;
 use App\Enum\Shifts\CashMovementType;
+use App\Filament\Pages\Reports\Concerns\ExportsExcel;
 use App\Filament\Pages\Reports\Concerns\HasReportPeriod;
 use App\Models\Order;
 use App\Models\Shift;
@@ -16,12 +17,11 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
-use League\Csv\EscapeFormula;
-use League\Csv\Writer;
 use UnitEnum;
 
 class ShiftReport extends Page
 {
+    use ExportsExcel;
     use HasReportPeriod;
 
     protected static ?string $title = 'Shift Report';
@@ -104,10 +104,10 @@ class ShiftReport extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('exportCsv')
-                ->label('Export CSV')
+            Action::make('exportExcel')
+                ->label('Export Excel')
                 ->icon(Heroicon::OutlinedTableCells)
-                ->action(fn () => $this->exportCsv()),
+                ->action(fn () => $this->exportExcelReport()),
             Action::make('exportPdf')
                 ->label('Export PDF')
                 ->icon(Heroicon::OutlinedDocumentArrowDown)
@@ -115,16 +115,14 @@ class ShiftReport extends Page
         ];
     }
 
-    protected function exportCsv()
+    protected function exportExcelReport()
     {
         $rows = $this->getRows();
 
-        $csv = Writer::createFromString('');
-        $csv->addFormatter(new EscapeFormula());
-        $csv->insertOne(['Kasir', 'Dibuka', 'Ditutup', 'Modal Awal', 'Cash Sales', 'Non-Cash Sales', 'Cash In', 'Cash Out', 'Expected', 'Actual', 'Selisih']);
-
-        foreach ($rows as $row) {
-            $csv->insertOne([
+        return $this->exportExcel(
+            filenamePrefix: 'shift-report',
+            headers: ['Kasir', 'Dibuka', 'Ditutup', 'Modal Awal', 'Cash Sales', 'Non-Cash Sales', 'Cash In', 'Cash Out', 'Expected', 'Actual', 'Selisih'],
+            rows: $rows->map(fn (array $row) => [
                 $row['user'],
                 $row['opened_at'],
                 $row['closed_at'] ?? '-',
@@ -136,13 +134,10 @@ class ShiftReport extends Page
                 $row['expected_cash'] ?? '-',
                 $row['actual_cash'] ?? '-',
                 $row['difference'] ?? '-',
-            ]);
-        }
-
-        return response()->streamDownload(
-            fn () => print $csv->toString(),
-            'shift-report-' . now()->format('Ymd-His') . '.csv',
-            ['Content-Type' => 'text/csv'],
+            ]),
+            moneyColumns: [4, 5, 6, 7, 8, 9, 10, 11],
+            totalLabel: 'Total',
+            totalValue: $rows->sum('cash_sales') + $rows->sum('non_cash_sales'),
         );
     }
 

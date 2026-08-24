@@ -4,6 +4,7 @@ namespace App\Filament\Pages\Reports;
 
 use App\Enum\Orders\OrderStatus;
 use App\Enum\Payments\PaymentMethod;
+use App\Filament\Pages\Reports\Concerns\ExportsExcel;
 use App\Filament\Pages\Reports\Concerns\HasReportPeriod;
 use App\Models\Order;
 use BackedEnum;
@@ -12,12 +13,11 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
-use League\Csv\EscapeFormula;
-use League\Csv\Writer;
 use UnitEnum;
 
 class SalesReport extends Page
 {
+    use ExportsExcel;
     use HasReportPeriod;
 
     protected static ?string $title = 'Sales Report';
@@ -88,10 +88,10 @@ class SalesReport extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('exportCsv')
-                ->label('Export CSV')
+            Action::make('exportExcel')
+                ->label('Export Excel')
                 ->icon(Heroicon::OutlinedTableCells)
-                ->action(fn () => $this->exportCsv()),
+                ->action(fn () => $this->exportExcelReport()),
             Action::make('exportPdf')
                 ->label('Export PDF')
                 ->icon(Heroicon::OutlinedDocumentArrowDown)
@@ -99,29 +99,24 @@ class SalesReport extends Page
         ];
     }
 
-    protected function exportCsv()
+    protected function exportExcelReport()
     {
         $rows = $this->getRows();
 
-        $csv = Writer::createFromString('');
-        $csv->addFormatter(new EscapeFormula());
-        $csv->insertOne(['Period', 'Payment Method', 'Orders', 'Subtotal', 'Tax', 'Total']);
-
-        foreach ($rows as $row) {
-            $csv->insertOne([
+        return $this->exportExcel(
+            filenamePrefix: 'sales-report',
+            headers: ['Period', 'Payment Method', 'Orders', 'Subtotal', 'Tax', 'Total'],
+            rows: $rows->map(fn (array $row) => [
                 $row['period'],
                 $row['payment_method'],
                 $row['order_count'],
                 $row['subtotal'],
                 $row['tax'],
                 $row['total'],
-            ]);
-        }
-
-        return response()->streamDownload(
-            fn () => print $csv->toString(),
-            'sales-report-' . now()->format('Ymd-His') . '.csv',
-            ['Content-Type' => 'text/csv'],
+            ]),
+            moneyColumns: [4, 5, 6],
+            totalLabel: 'Total',
+            totalValue: $rows->sum('total'),
         );
     }
 

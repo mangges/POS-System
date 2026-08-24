@@ -53,7 +53,8 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($this->getRows() as $row)
+                @php($rows = $this->getRows())
+                @forelse ($rows as $row)
                     <tr>
                         <td>{{ $row['period'] }}</td>
                         <td>{{ $row['product_name'] }}</td>
@@ -65,6 +66,12 @@
                         <td colspan="4" class="report-empty">No data for this period.</td>
                     </tr>
                 @endforelse
+                @if ($rows->isNotEmpty())
+                    <tr>
+                        <td colspan="3" class="report-num" style="font-weight: 600;">Total</td>
+                        <td class="report-num" style="font-weight: 600;">Rp {{ number_format($rows->sum('revenue'), 0, ',', '.') }}</td>
+                    </tr>
+                @endif
             </tbody>
         </table>
     </div>

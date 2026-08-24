@@ -36,6 +36,12 @@
             @empty
                 <tr><td colspan="6">No data for this period.</td></tr>
             @endforelse
+            @if ($rows->isNotEmpty())
+                <tr>
+                    <td colspan="5" style="text-align: right; font-weight: bold;">Total</td>
+                    <td style="font-weight: bold;">Rp {{ number_format($rows->sum('total'), 0, ',', '.') }}</td>
+                </tr>
+            @endif
         </tbody>
     </table>
 </body>

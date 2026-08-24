@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Reports;
 
 use App\Enum\Orders\OrderStatus;
+use App\Filament\Pages\Reports\Concerns\ExportsExcel;
 use App\Filament\Pages\Reports\Concerns\HasReportPeriod;
 use App\Models\OrderItem;
 use BackedEnum;
@@ -11,12 +12,11 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
-use League\Csv\EscapeFormula;
-use League\Csv\Writer;
 use UnitEnum;
 
 class ProductReport extends Page
 {
+    use ExportsExcel;
     use HasReportPeriod;
 
     protected static ?string $title = 'Product Report';
@@ -86,10 +86,10 @@ class ProductReport extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('exportCsv')
-                ->label('Export CSV')
+            Action::make('exportExcel')
+                ->label('Export Excel')
                 ->icon(Heroicon::OutlinedTableCells)
-                ->action(fn () => $this->exportCsv()),
+                ->action(fn () => $this->exportExcelReport()),
             Action::make('exportPdf')
                 ->label('Export PDF')
                 ->icon(Heroicon::OutlinedDocumentArrowDown)
@@ -97,27 +97,22 @@ class ProductReport extends Page
         ];
     }
 
-    protected function exportCsv()
+    protected function exportExcelReport()
     {
         $rows = $this->getRows();
 
-        $csv = Writer::createFromString('');
-        $csv->addFormatter(new EscapeFormula());
-        $csv->insertOne(['Period', 'Product', 'Qty Sold', 'Revenue']);
-
-        foreach ($rows as $row) {
-            $csv->insertOne([
+        return $this->exportExcel(
+            filenamePrefix: 'product-report',
+            headers: ['Period', 'Product', 'Qty Sold', 'Revenue'],
+            rows: $rows->map(fn (array $row) => [
                 $row['period'],
                 $row['product_name'],
                 $row['quantity'],
                 $row['revenue'],
-            ]);
-        }
-
-        return response()->streamDownload(
-            fn () => print $csv->toString(),
-            'product-report-' . now()->format('Ymd-His') . '.csv',
-            ['Content-Type' => 'text/csv'],
+            ]),
+            moneyColumns: [4],
+            totalLabel: 'Total',
+            totalValue: $rows->sum('revenue'),
         );
     }
 

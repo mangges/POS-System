@@ -46,6 +46,12 @@
             @empty
                 <tr><td colspan="11">No data for this period.</td></tr>
             @endforelse
+            @if ($rows->isNotEmpty())
+                <tr>
+                    <td colspan="10" style="text-align: right; font-weight: bold;">Total</td>
+                    <td style="font-weight: bold;">Rp {{ number_format($rows->sum('cash_sales') + $rows->sum('non_cash_sales'), 0, ',', '.') }}</td>
+                </tr>
+            @endif
         </tbody>
     </table>
 </body>
