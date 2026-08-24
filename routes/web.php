@@ -3,6 +3,7 @@
 use App\Filament\CustomPages\PosCashier;
 use App\Filament\CustomPages\PosReceipt;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PushSubscribeController;
 use App\Livewire\Auth\Login;
 use App\Livewire\LandingPage\LandingPage;
 use App\Livewire\Pos\Receipt;
@@ -54,4 +55,5 @@ Route::middleware($adminPanel->getMiddleware())
 // ---------------------------------------------------------------------------
 Route::get('/order/{table_token}', [OrderController::class, 'scan'])->name('order');
 Route::get('/menu/{session_token}', LandingPage::class)->name('menu');
+Route::post('/menu/{session_token}/push-subscribe', PushSubscribeController::class)->name('menu.push-subscribe');
 Route::get('/{token}', Receipt::class)->name('receipt.show');
