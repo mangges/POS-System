@@ -12,10 +12,11 @@ class RawMaterial extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'unit_id', 'stock'];
+    protected $fillable = ['name', 'unit_id', 'stock', 'min_stock'];
 
     protected $casts = [
         'stock' => 'decimal:2',
+        'min_stock' => 'decimal:2',
     ];
 
     public function unit(): BelongsTo

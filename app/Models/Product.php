@@ -19,6 +19,7 @@ class Product extends Model
         'price',
         'has_recipe',
         'stock',
+        'min_stock',
         'is_out_of_stock',
         'destination',
         'image',
