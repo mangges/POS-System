@@ -689,6 +689,17 @@
                     Livewire.dispatch('notify', { message: e.message, type: e.type, orderId: e.order_id, status: e.status });
                     Livewire.dispatch('order-status-updated', { orderId: e.order_id, status: e.status });
                 });
+
+            // Clicking the OS push notification (sw.js) focuses this tab and posts
+            // here instead of navigating — dispatch the same event the in-app bell's
+            // notification item click dispatches, so both behave identically.
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data?.type === 'show-order-detail' && event.data.orderId) {
+                        Livewire.dispatch('show-order-detail', { orderId: event.data.orderId });
+                    }
+                });
+            }
         });
     </script>
     <script>

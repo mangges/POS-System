@@ -21,6 +21,9 @@ class OrderStatusPushNotification extends Notification
         return (new WebPushMessage)
             ->title('Status pesanan')
             ->body($this->event->message)
-            ->data(['order_id' => $this->event->order->id]);
+            ->data([
+                'order_id' => $this->event->order->id,
+                'url' => route('menu', ['session_token' => $notifiable->token]),
+            ]);
     }
 }
