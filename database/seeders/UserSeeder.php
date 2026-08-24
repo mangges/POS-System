@@ -12,20 +12,24 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::create([
-            'name' => 'Administrator',
-            'email' => 'admin@pos.com',
-            'password' => \Hash::make('password'),
-            'pin' => '123456',
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@pos.com'],
+            [
+                'name' => 'Administrator',
+                'password' => \Hash::make('password'),
+                'pin' => '123456',
+            ]
+        );
         $admin->assignRole('admin');
 
-        $cashier = User::create([
-            'name' => 'Cashier 1',
-            'email' => 'cashier@pos.com',
-            'password' => \Hash::make('password'),
-            'pin' => '654321',
-        ]);
+        $cashier = User::firstOrCreate(
+            ['email' => 'cashier@pos.com'],
+            [
+                'name' => 'Cashier 1',
+                'password' => \Hash::make('password'),
+                'pin' => '654321',
+            ]
+        );
         $cashier->assignRole('cashier');
     }
 }
