@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Events\StockChanged;
 use App\Models\StockMovement;
 
 class StockMovementObserver
@@ -11,5 +12,7 @@ class StockMovementObserver
         $column = $movement->type === 'in' ? 'increment' : 'decrement';
 
         $movement->reference()->{$column}('stock', $movement->quantity);
+
+        StockChanged::dispatch($movement->reference()->first());
     }
 }
