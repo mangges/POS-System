@@ -1,3 +1,9 @@
+// Without these, a browser that already installed an older sw.js keeps
+// running it until every tab closes — this file's fixes would silently
+// never take effect for anyone who subscribed before this deploy.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
 self.addEventListener('push', (event) => {
     const payload = event.data.json();
     event.waitUntil(
