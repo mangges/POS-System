@@ -28,6 +28,9 @@ class ProductsTable
                 TextColumn::make('stock')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('min_stock')
+                    ->numeric()
+                    ->sortable(),
                 IconColumn::make('is_out_of_stock')
                     ->boolean(),
                 TextColumn::make('destination')

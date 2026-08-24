@@ -22,6 +22,9 @@ class RawMaterialsTable
                 TextColumn::make('stock')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('min_stock')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

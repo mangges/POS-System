@@ -23,6 +23,10 @@ class RawMaterialForm
                     ->required()
                     ->numeric()
                     ->default(0.0),
+                TextInput::make('min_stock')
+                    ->required()
+                    ->numeric()
+                    ->default(0.0),
             ]);
     }
 }

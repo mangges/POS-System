@@ -60,6 +60,8 @@ class ProductForm
                     ->columnSpanFull(),
                 TextInput::make('stock')
                     ->numeric(),
+                TextInput::make('min_stock')
+                    ->numeric(),
                 Toggle::make('is_out_of_stock')
                     ->required(),
                 Select::make('destination')
