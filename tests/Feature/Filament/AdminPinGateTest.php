@@ -46,7 +46,7 @@ class AdminPinGateTest extends TestCase
             ->call('submit')
             ->assertRedirect('/admin/categories');
 
-        $this->assertTrue($cashier->fresh()->can('access-categories'));
+        $this->assertTrue(session()->has('pin_unlocked.categories'));
     }
 
     public function test_tier_3_resource_cannot_be_unlocked_via_this_page_even_with_correct_pin(): void

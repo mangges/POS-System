@@ -50,11 +50,12 @@ class AdminPinGate extends Page
         $admin = User::role('admin')->where('pin', $this->pin)->first();
 
         if (! $admin) {
+            $this->pin = '';
             Notification::make()->danger()->title('PIN salah')->send();
             return;
         }
 
-        auth()->user()->syncPermissions(["access-{$this->resource}"]);
+        session()->put("pin_unlocked.{$this->resource}", true);
 
         $this->redirect($this->safeRedirectUrl());
     }

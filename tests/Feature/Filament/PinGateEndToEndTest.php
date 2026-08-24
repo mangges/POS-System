@@ -69,7 +69,7 @@ class PinGateEndToEndTest extends TestCase
             ->call('submit')
             ->assertRedirect('/admin/categories');
 
-        $this->assertTrue($cashier->fresh()->can('access-categories'));
+        $this->assertTrue(session()->has('pin_unlocked.categories'));
 
         // 4. Real subsequent request to the resource now passes straight
         // through the middleware.

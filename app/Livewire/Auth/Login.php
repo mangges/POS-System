@@ -52,6 +52,7 @@ class Login extends Component
             Auth::login($user);
             session()->regenerate();
             $user->syncPermissions([]);
+            session()->forget('pin_unlocked');
             if ($user->hasRole('admin')) {
                 return redirect('/admin');
             }
@@ -74,6 +75,7 @@ class Login extends Component
 
             $user = Auth::user();
             $user->syncPermissions([]);
+            session()->forget('pin_unlocked');
             if ($user->hasRole('admin')) {
                 return redirect('/admin');
             }
