@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Enum\Orders\OrderStatus;
 use App\Events\OrderPlaced;
 use App\Events\OrderStatusUpdated;
+use App\Notifications\OrderStatusPushNotification;
 use Filament\Notifications\Notification;
 
 class Order extends Model
@@ -32,7 +33,16 @@ class Order extends Model
 
         static::updated(function (Order $order) {
             if ($order->wasChanged('status') && $order->table()->first()?->qr_token) {
-                broadcast(new OrderStatusUpdated($order));
+                if ($order->guestSession?->isExpired()) {
+                    $order->guestSession->update(['expires_at' => now()->addMinutes(15)]);
+                }
+
+                $event = new OrderStatusUpdated($order);
+                broadcast($event);
+
+                if ($order->guestSession) {
+                    $order->guestSession->notify(new OrderStatusPushNotification($event));
+                }
             }
         });
     }
