@@ -41,6 +41,16 @@ class ProductResource extends Resource
         ];
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::whereColumn('stock', '<=', 'min_stock')->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
     public static function getPages(): array
     {
         return [
