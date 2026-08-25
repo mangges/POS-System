@@ -12,20 +12,20 @@
         <template x-teleport="#pos-shift-topbar">
             <div class="pos-shift-topbar-group">
                 <x-filament::badge color="gray">
-                    Shift Aktif &middot; {{ $activeShift->user->name}}
+                    {{ __('pos.Shift Aktif')}} &middot; {{ $activeShift->user->name}}
                 </x-filament::badge>
                 <x-filament::icon-button
                     color="gray"
                     :icon="\Filament\Support\Icons\Heroicon::OutlinedBanknotes"
                     icon-size="lg"
-                    label="Cash In/Out"
+                    :label="__('pos.Cash In/Out')"
                     wire:click="openCashMovementModal"
                 />
                 <x-filament::icon-button
                     color="gray"
                     :icon="\Filament\Support\Icons\Heroicon::OutlinedLockClosed"
                     icon-size="lg"
-                    label="Tutup Shift"
+                    :label="__('pos.Tutup Shift')"
                     wire:click="openEndShiftModal"
                 />
             </div>
@@ -38,7 +38,7 @@
             <!-- Categories & Search -->
             <div class="main-controls">
                 <div class="pos-categories">
-                    <button wire:click="filterCategory(null)" class="category-btn {{ $selectedCategory === null ? 'active' : '' }}">Semua Menu</button>
+                    <button wire:click="filterCategory(null)" class="category-btn {{ $selectedCategory === null ? 'active' : '' }}">{{ __('pos.Semua Menu') }}</button>
                     @foreach($categories as $category)
                         <button wire:click="filterCategory({{ $category->id }})" class="category-btn {{ $selectedCategory === $category->id ? 'active' : '' }}">
                             {{ $category->name }}
@@ -49,7 +49,7 @@
                 <div class="product-search">
                     <div class="search-wrapper">
                         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari menu produk..." class="search-input">
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="{{ __('pos.Cari menu produk') }}" class="search-input">
                         @if($search)
                             <button wire:click="$set('search', '')" class="search-clear">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -83,14 +83,14 @@
                             <p class="product-price">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                         </div>
                         @if($isOut)
-                            <div class="product-badge">Habis</div>
+                            <div class="product-badge">{{ __('pos.Habis') }}</div>
                         @endif
                     </div>
                 @endforeach
                 
                 @if(count($products) === 0)
                     <div class="no-products">
-                        <p>Menu tidak ditemukan.</p>
+                        <p>{{ __('pos.Menu tidak ditemukan.') }}</p>
                     </div>
                 @endif
             </div>
@@ -99,7 +99,7 @@
         <!-- Right Sidebar / Cart -->
         <div class="pos-sidebar">
             <div class="cart-header">
-                <h2>Pesanan Saat Ini</h2>
+                <h2>{{ __('pos.Pesanan Saat Ini') }}</h2>
                 <div class="button-wrapper">
                     <button wire:click="openFromTableModal" class="cashier-header-button table-order-lists-button">
                         <i  class="bi bi-clipboard-fill"> </i>
@@ -127,7 +127,7 @@
                 @if(count($cart) === 0)
                     <div class="empty-cart">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                        <p>Belum ada pesanan</p>
+                        <p>{{ __('pos.Belum ada pesanan') }}</p>
                     </div>
                 @elseif($splitMode)
                     @include('livewire.pos.split_bill_panel')
@@ -158,25 +158,25 @@
             <div class="cart-summary">
                 @unless($splitMode)
                 <div class="summary-row">
-                    <span>Nama Pelanggan</span>
+                    <span>{{ __('pos.Nama Pelanggan') }}</span>
                     <input
                         type="text"
                         wire:model.live.debounce.300ms="customerName"
-                        placeholder="Masukkan nama pelanggan"
+                        placeholder="{{ __('pos.Masukkan nama pelanggan') }}"
                         x-data
                         @input="$el.value = $el.value.replace(/[^a-zA-Z\s]/g, '')">
                 </div>
                 @endunless
                 <div class="summary-row">
-                    <span>Subtotal</span>
+                    <span>{{ __('pos.Subtotal') }}</span>
                     <span>Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
                 </div>
                 <div class="summary-row">
-                    <span>Pajak (11%)</span>
+                    <span>{{ __('pos.Pajak') }} (11%)</span>
                     <span>Rp {{ number_format($this->taxAmount, 0, ',', '.') }}</span>
                 </div>
                 <div class="summary-row total-row">
-                    <span>Total</span>
+                    <span>{{ __('pos.Total') }}</span>
                     <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                 </div>
 
@@ -184,23 +184,23 @@
                     <div class="buttons-row-secondary">
                         <button class="secondary-btn void-btn" wire:click="voidCart" @if(count($cart) === 0) disabled @endif>
                             <i class="bi bi-trash3"></i>
-                            <span>Kosongkan</span>
+                            <span>{{ __('pos.Kosongkan') }}</span>
                         </button>
                         <button class="secondary-btn split-toggle-btn" wire:click="toggleSplitMode" @if(count($cart) === 0) disabled @endif>
                             <i class="bi bi-people-fill"></i>
-                            <span>{{ $splitMode ? 'Batal Split' : 'Split Bill' }}</span>
+                            <span>{{ $splitMode ? __('pos.Batal Split') : __('pos.Split Bill') }}</span>
                         </button>
                         @unless($splitMode)
                         <button class="secondary-btn draft-btn" wire:click="saveDraft" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
                             <i class="bi bi-save2"></i>
-                            <span>Draft</span>
+                            <span>{{ __('pos.Draft') }}</span>
                         </button>
                         @endunless
                     </div>
                     @unless($splitMode)
                     <button class="checkout-btn" wire:click="checkout" @if(count($cart) === 0 || empty($customerName)) disabled @endif>
                         <i class="bi bi-credit-card-fill"></i>
-                        <span>Proses Pembayaran</span>
+                        <span>{{ __('pos.Proses Pembayaran') }}</span>
                     </button>
                     @endunless
                 </div>
@@ -247,15 +247,15 @@
     <div class="shift-gate">
         <div class="shift-gate-card">
             <div class="shift-gate-icon"><i class="bi bi-safe2-fill"></i></div>
-            <h2>Buka Shift</h2>
-            <p>Masukkan modal awal kas sebelum mulai melayani transaksi.</p>
+            <h2>{{ __('pos.Buka Shift') }}</h2>
+            <p>{{ __('pos.Masukkan modal awal kas sebelum mulai melayani transaksi.')}}</p>
 
             @error('shiftOpeningCash')
                 <div class="shift-gate-error">{{ $message }}</div>
             @enderror
 
             <form wire:submit.prevent="openShift" class="shift-gate-form">
-                <label for="shiftOpeningCash">Modal Awal (Rp)</label>
+                <label for="shiftOpeningCash">{{ __('pos.Modal Awal') }} (Rp)</label>
                 <x-currency-input
                     model="shiftOpeningCash"
                     id="shiftOpeningCash"
@@ -265,7 +265,7 @@
                 />
                 <button type="submit" class="checkout-btn shift-gate-submit">
                     <i class="bi bi-unlock-fill"></i>
-                    <span>Buka Shift</span>
+                    <span>{{ __('pos.Buka Shift') }}</span>
                 </button>
             </form>
         </div>

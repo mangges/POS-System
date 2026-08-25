@@ -1,8 +1,8 @@
 <div class="qris-preview-card">
     <div class="drafts-modal-header">
-        <h3>QRIS Pembayaran</h3>
+        <h3>{{ __('pos.QRIS Pembayaran') }}</h3>
         <button type="button" wire:click="closeQrisPreviewModal" class="qris-preview-shrink-btn">
-            <i class="bi bi-fullscreen-exit"></i> Perkecil
+            <i class="bi bi-fullscreen-exit"></i> {{ __('pos.Perkecil') }}
         </button>
     </div>
 
@@ -15,9 +15,9 @@
         @if($previewImage)
             <div class="qris-preview-image">{!! $previewImage !!}</div>
             <p class="qris-preview-amount">Rp {{ number_format($previewAmount, 0, ',', '.') }}</p>
-            <p class="qris-preview-hint">Scan QR di atas untuk membayar.</p>
+            <p class="qris-preview-hint">{{ __('pos.Scan QR di atas untuk membayar') }}</p>
         @else
-            <p class="qris-preview-hint">QRIS dinamis belum tersedia. Pilih metode QRIS dan pastikan mode Static &rarr; Dynamic aktif di Payment Method Settings.</p>
+            <p class="qris-preview-hint">{{ __('pos.QRIS dinamis belum tersedia') }}</p>
         @endif
     </div>
 </div>
