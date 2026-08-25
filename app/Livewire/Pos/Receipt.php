@@ -49,6 +49,22 @@ class Receipt extends Component
     }
 
     #[Computed]
+    public function barItems()
+    {
+        return $this->orderItems->filter(
+            fn (OrderItem $item) => $item->product->destination === 'bar'
+        );
+    }
+
+    #[Computed]
+    public function kitchenItems()
+    {
+        return $this->orderItems->filter(
+            fn (OrderItem $item) => $item->product->destination === 'kitchen'
+        );
+    }
+
+    #[Computed]
     public function receiptSettings()
     {
         return ReceiptSetting::current();

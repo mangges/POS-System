@@ -91,7 +91,7 @@
                 width: 100%;
             }
 
-            #printable-receipt {
+            .thermal-receipt {
                 margin: 0 auto !important;
             }
 

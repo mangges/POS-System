@@ -54,4 +54,94 @@ class ReceiptTest extends TestCase
         $response->assertSee('Success');
         $response->assertSee('#16a34a', false);
     }
+
+    public function test_receipt_splits_items_into_station_tickets_by_destination(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $category = Category::create(['name' => 'Menu', 'slug' => 'menu']);
+
+        $kitchenProduct = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Nasi Goreng',
+            'price' => 20000,
+            'has_recipe' => false,
+            'stock' => 10,
+            'destination' => 'kitchen',
+        ]);
+
+        $barProduct = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Es Teh',
+            'price' => 5000,
+            'has_recipe' => false,
+            'stock' => 10,
+            'destination' => 'bar',
+        ]);
+
+        $cashierProduct = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Kartu Member',
+            'price' => 10000,
+            'has_recipe' => false,
+            'stock' => 10,
+            'destination' => 'cashier',
+        ]);
+
+        $order = Order::create([
+            'order_number' => 'ORD-2',
+            'total_amount' => 35000,
+            'tax' => 0,
+            'discount' => 0,
+            'status' => OrderStatus::Completed,
+            'order_type' => 'dine_in',
+            'token' => 'test-token-2',
+        ]);
+
+        foreach ([$kitchenProduct, $barProduct, $cashierProduct] as $product) {
+            $order->items()->create([
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'price' => $product->price,
+                'subtotal' => $product->price,
+            ]);
+        }
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'payment_method' => 'cash',
+            'amount' => 35000,
+            'status' => PaymentStatus::Success,
+        ]);
+
+        $order->update(['payment_id' => $payment->id]);
+
+        $response = $this->get('/cashier/receipt/'.$order->id);
+
+        $response->assertSuccessful();
+        $html = $response->getContent();
+
+        // Struk kasir tetap nampilin semua item + harga
+        $this->assertStringContainsString('id="ticket-cashier"', $html);
+        $this->assertStringContainsString('Nasi Goreng', $html);
+        $this->assertStringContainsString('Es Teh', $html);
+        $this->assertStringContainsString('Kartu Member', $html);
+        $this->assertStringContainsString('20.000', $html);
+
+        // Tiket bar/kitchen ada, tanpa harga
+        $this->assertStringContainsString('id="ticket-bar"', $html);
+        $this->assertStringContainsString('id="ticket-kitchen"', $html);
+        $this->assertStringContainsString('DAPUR', $html);
+        $this->assertStringContainsString('BAR', $html);
+
+        // item cashier-only tidak boleh ikut ke tiket bar/kitchen
+        $ticketBarStart = strpos($html, 'id="ticket-bar"');
+        $ticketKitchenStart = strpos($html, 'id="ticket-kitchen"');
+        $ticketBarSection = substr($html, $ticketBarStart, 500);
+        $ticketKitchenSection = substr($html, $ticketKitchenStart, 500);
+        $this->assertStringNotContainsString('Kartu Member', $ticketBarSection);
+        $this->assertStringNotContainsString('Kartu Member', $ticketKitchenSection);
+        $this->assertStringNotContainsString('Nasi Goreng', $ticketBarSection);
+        $this->assertStringNotContainsString('Es Teh', $ticketKitchenSection);
+    }
 }

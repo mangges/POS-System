@@ -1,10 +1,22 @@
 @if ($this->orderId)
 <div class="receipt-container">
     <div class="receipt-preview-wrapper">
-        <div class="receipt-scroll-area">
+        <div class="receipt-scroll-area" id="ticket-cashier">
             @include('livewire.pos.receipts._thermal')
         </div>
     </div>
+
+    @if($this->barItems->isNotEmpty())
+        <div id="ticket-bar" style="display:none">
+            @include('livewire.pos.receipts._station_ticket', ['items' => $this->barItems, 'stationLabel' => 'BAR'])
+        </div>
+    @endif
+
+    @if($this->kitchenItems->isNotEmpty())
+        <div id="ticket-kitchen" style="display:none">
+            @include('livewire.pos.receipts._station_ticket', ['items' => $this->kitchenItems, 'stationLabel' => 'DAPUR'])
+        </div>
+    @endif
 
     <div class="receipt-sidebar">
         <div class="panel-card">
@@ -31,7 +43,7 @@
 
         <div class="panel-card">
             <div class="action-grid">
-                <button class="btn btn-primary" onclick="window.print()">
+                <button class="btn btn-primary" onclick="printAllReceipts()">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     Cetak Struk
                 </button>
@@ -54,6 +66,35 @@
         </div>
     </div>
 </div>
+
+<script>
+    function printAllReceipts() {
+        const ids = ['ticket-cashier', 'ticket-bar', 'ticket-kitchen']
+            .filter(id => document.getElementById(id) !== null);
+        let i = 0;
+
+        function showOnly(activeId) {
+            ids.forEach(id => {
+                document.getElementById(id).style.display = id === activeId ? 'block' : 'none';
+            });
+        }
+
+        function afterPrint() {
+            i++;
+            if (i < ids.length) {
+                showOnly(ids[i]);
+                window.print();
+            } else {
+                showOnly('ticket-cashier');
+                window.removeEventListener('afterprint', afterPrint);
+            }
+        }
+
+        window.addEventListener('afterprint', afterPrint);
+        showOnly(ids[0]);
+        window.print();
+    }
+</script>
 @else
     <div class="receipt-solo">
         @include('livewire.pos.receipts._thermal')
