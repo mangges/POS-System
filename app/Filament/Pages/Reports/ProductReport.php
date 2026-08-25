@@ -19,17 +19,28 @@ class ProductReport extends Page
     use ExportsExcel;
     use HasReportPeriod;
 
-    protected static ?string $title = 'Product Report';
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
-
-    protected static string|UnitEnum|null $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.pages.reports.product-report';
 
     public ?array $data = [];
+
+    public function getTitle(): string
+    {
+        return __('product-report.Product Report');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('product-report.Product Report');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Reports');
+    }
 
     public static function canAccess(): bool
     {

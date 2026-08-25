@@ -26,16 +26,28 @@ use Zxing\QrReader;
 
 class PaymentMethodSettings extends Page
 {
-    protected static ?string $title = 'Payment Method';
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 3;
-    
+
     protected string $view = 'filament-panels::pages.page';
 
     public ?array $data = [];
+
+    public function getTitle(): string
+    {
+        return __('payment-method-settings.Payment Method');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('payment-method-settings.Payment Method');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Settings');
+    }
 
     public static function canAccess(): bool
     {

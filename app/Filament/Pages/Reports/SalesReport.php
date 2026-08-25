@@ -20,17 +20,28 @@ class SalesReport extends Page
     use ExportsExcel;
     use HasReportPeriod;
 
-    protected static ?string $title = 'Sales Report';
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
-
-    protected static string|UnitEnum|null $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 3;
 
     protected string $view = 'filament.pages.reports.sales-report';
 
     public ?array $data = [];
+
+    public function getTitle(): string
+    {
+        return __('sales-report.Sales Report');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('sales-report.Sales Report');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Reports');
+    }
 
     public static function canAccess(): bool
     {

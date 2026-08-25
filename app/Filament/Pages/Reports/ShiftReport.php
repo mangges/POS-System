@@ -24,17 +24,28 @@ class ShiftReport extends Page
     use ExportsExcel;
     use HasReportPeriod;
 
-    protected static ?string $title = 'Shift Report';
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
-
-    protected static string|UnitEnum|null $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 4;
 
     protected string $view = 'filament.pages.reports.shift-report';
 
     public ?array $data = [];
+
+    public function getTitle(): string
+    {
+        return __('shift-report.Shift Report');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('shift-report.Shift Report');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Reports');
+    }
 
     public function mount(): void
     {
