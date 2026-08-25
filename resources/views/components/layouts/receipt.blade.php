@@ -94,6 +94,12 @@
             #printable-receipt {
                 margin: 0 auto !important;
             }
+
+            #printable-receipt img {
+                filter: grayscale(1) contrast(1.2) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
 </head>

@@ -1,7 +1,7 @@
 <div class="thermal-receipt" id="printable-receipt">
     <div class="receipt-header">
         @if($this->receiptSettings->logo_path)
-        <img src="{{ Storage::disk('public')->url($this->receiptSettings->logo_path) }}" alt="Logo" style="max-width: 80px; margin: 0 auto 8px;">
+        <img src="{{ Storage::disk('public')->url($this->receiptSettings->logo_path) }}" alt="Logo" style="max-width: 80px; margin: 0 auto 8px; filter: grayscale(1) contrast(1.2);">
         @endif
         <h2>{{ $this->receiptSettings->store_name }}</h2>
         @if($this->receiptSettings->address)
