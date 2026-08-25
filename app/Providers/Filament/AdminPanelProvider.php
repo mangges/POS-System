@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Enum\Orders\OrderStatus;
 use App\Http\Middleware\EnsureResourcePinUnlocked;
 use App\Http\Middleware\PreventLogoutWithOpenShift;
+use App\Http\Middleware\SetLocale;
 use App\Models\Order;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -45,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\Dashboard::class,
             ])
             ->navigationItems([
-                NavigationItem::make('Cashier')
+                NavigationItem::make(fn (): string => __('navigation.Cashier'))
                     ->icon(Heroicon::OutlinedComputerDesktop)
                     ->sort(0)
                     ->url('/cashier')
@@ -67,6 +68,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                SetLocale::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

@@ -21,6 +21,17 @@ Route::get('/', fn () => redirect()->route('login'));
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 // ---------------------------------------------------------------------------
+// Locale switch — stores choice in session, SetLocale middleware picks it up
+// ---------------------------------------------------------------------------
+Route::get('/locale/{locale}', function (string $locale) {
+    if (in_array($locale, ['id', 'en'], true)) {
+        session(['locale' => $locale]);
+    }
+
+    return back();
+})->name('locale.switch');
+
+// ---------------------------------------------------------------------------
 // POS pages — Filament pages (sidebar/topbar chrome from the "admin" panel),
 // but registered here instead of via the panel's own page discovery so their
 // URLs are /cashier and /cashier/receipt/{orderId} instead of living under
