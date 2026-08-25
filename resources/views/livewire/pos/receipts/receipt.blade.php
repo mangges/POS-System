@@ -8,22 +8,22 @@
 
     <div class="receipt-sidebar">
         <div class="panel-card">
-            <div class="panel-header">Ringkasan Transaksi</div>
+            <div class="panel-header">{{ __('receipt.Ringkasan Transaksi') }}</div>
             <div class="summary-grid">
                 <div class="summary-item">
-                    <label>Total Belanja</label>
+                    <label>{{ __('receipt.Total Belanja') }}</label>
                     <span>Rp {{ number_format($this->order->total_amount, 0, ',', '.') }}</span>
                 </div>
                 <div class="summary-item">
-                    <label>Metode Pembayaran</label>
+                    <label>{{ __('receipt.Metode Pembayaran') }}</label>
                     <span>{{ ucfirst($this->payment->payment_method ?? '-') }}</span>
                 </div>
                 <div class="summary-item">
-                    <label>Status</label>
+                    <label>{{ __('receipt.Status') }}</label>
                     <span style="color: {{ match($this->payment->status->getColor()) { 'success' => 'var(--color-success-text)', 'warning' => 'var(--color-warning-text)', 'danger' => 'var(--color-danger-text)', default => 'var(--color-text-muted)' } }}; font-weight: 600;">{{ $this->payment->status->getLabel() ?? '-' }}</span>
                 </div>
                 <div class="summary-item">
-                    <label>Pelanggan</label>
+                    <label>{{ __('receipt.Pelanggan') }}</label>
                     <span>{{ $this->order->customer_name ?? '-' }}</span>
                 </div>
             </div>
@@ -33,7 +33,7 @@
             <div class="action-grid">
                 <button class="btn btn-primary" onclick="window.print()">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    Cetak Struk
+                    {{ __('receipt.Cetak Struk') }}
                 </button>
 {{--
                 <button class="btn btn-success">
@@ -48,7 +48,7 @@
 
                 <a href="{{ route('filament.admin.pages.cashier') }}" wire:navigate class="btn btn-draft">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                    Simpan dan Kembali
+                    {{ __('receipt.Simpan dan Kembali') }}
                 </a>
             </div>
         </div>
@@ -61,7 +61,7 @@
         @if ($this->order->table?->qr_token)
             <a href="{{ route('order', $this->order->table->qr_token) }}" wire:navigate class="btn btn-draft receipt-exit-btn">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                Keluar
+                {{ __('receipt.Keluar') }}
             </a>
         @endif
     </div>

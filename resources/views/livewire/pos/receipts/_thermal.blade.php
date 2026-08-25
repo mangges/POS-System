@@ -8,7 +8,7 @@
         <p>{{ $this->receiptSettings->address }}</p>
         @endif
         @if($this->receiptSettings->phone)
-        <p>Telp: {{ $this->receiptSettings->phone }}</p>
+        <p>{{ __('receipt.Telp:') }} {{ $this->receiptSettings->phone }}</p>
         @endif
         @if($this->receiptSettings->website)
         <p>{{ $this->receiptSettings->website }}</p>
@@ -22,11 +22,11 @@
         <span>No: #{{ $this->order->order_number }}</span>
     </div>
     <div class="receipt-row">
-        <span>Kasir: </span>
+        <span>{{ __('receipt.Kasir:') }} </span>
         <span>{{ $this->order->cashier_name ?? 'Admin' }}</span>
     </div>
     <div class="receipt-row">
-        <span>Pelanggan: </span>
+        <span>{{ __('receipt.Pelanggan:') }} </span>
         <span>{{ $this->order->customer_name ?? '-' }}</span>
     </div>
 
@@ -48,23 +48,23 @@
 
     <div class="receipt-total-section">
         <div class="receipt-row">
-            <span>Subtotal</span>
+            <span>{{ __('receipt.Subtotal') }}</span>
             <span>{{ number_format($this->subtotal, 0, ',', '.') }}</span>
         </div>
         <div class="receipt-row">
-            <span>PPN ({{ $this->subtotal > 0 ? round($this->order->tax / $this->subtotal * 100) : 0 }}%)</span>
+            <span>{{ __('receipt.PPN (:percent%)', ['percent' => $this->subtotal > 0 ? round($this->order->tax / $this->subtotal * 100) : 0]) }}</span>
             <span>{{ number_format($this->order->tax, 0, ',', '.') }}</span>
         </div>
         <div class="receipt-row grand-total">
-            <span>TOTAL</span>
+            <span>{{ __('receipt.TOTAL') }}</span>
             <span>Rp {{ number_format($this->order->total_amount, 0, ',', '.') }}</span>
         </div>
         <div class="receipt-row" style="margin-top: 8px;">
-            <span>Tunai</span>
+            <span>{{ __('receipt.Tunai') }}</span>
             <span>{{ number_format($this->payment->amount, 0, ',', '.') }}</span>
         </div>
         <div class="receipt-row">
-            <span>Kembali</span>
+            <span>{{ __('receipt.Kembali') }}</span>
             <span>{{ number_format($this->change, 0, ',', '.') }}</span>
         </div>
     </div>
@@ -74,7 +74,7 @@
 
     <div class="receipt-qr">
         {!! QrCode::size(150)->generate(route('receipt.show', $this->order->token)) !!}
-        <p>Scan untuk e-receipt</p>
+        <p>{{ __('receipt.Scan untuk e-receipt') }}</p>
     </div>
     @endif
 
