@@ -20,8 +20,22 @@ class OrderItemResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Transaction';
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Transaction');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('order-item.Order Item');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('order-item.Order Items');
+    }
 
     public static function form(Schema $schema): Schema
     {

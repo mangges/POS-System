@@ -21,8 +21,22 @@ class RawMaterialResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Inventory');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('raw-material.Raw Material');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('raw-material.Raw Materials');
+    }
 
     public static function form(Schema $schema): Schema
     {

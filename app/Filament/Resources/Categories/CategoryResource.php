@@ -20,8 +20,22 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Settings');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('category.Category');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('category.Categories');
+    }
 
     public static function form(Schema $schema): Schema
     {

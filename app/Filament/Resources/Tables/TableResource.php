@@ -20,8 +20,22 @@ class TableResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTableCells;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Settings');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('table.Table');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('table.Tables');
+    }
 
     public static function form(Schema $schema): Schema
     {

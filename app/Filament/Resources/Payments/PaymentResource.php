@@ -20,8 +20,22 @@ class PaymentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCurrencyDollar;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Transaction';
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Transaction');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('payment.Payment');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('payment.Payments');
+    }
 
     public static function form(Schema $schema): Schema
     {

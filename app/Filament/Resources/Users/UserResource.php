@@ -20,10 +20,24 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'Users';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Settings');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('user.User');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('user.Users');
+    }
 
     public static function canAccess(): bool
     {

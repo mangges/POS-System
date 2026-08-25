@@ -20,8 +20,22 @@ class ShiftResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Transaction';
     protected static ?int $navigationSort = 3;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.Transaction');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('shift.Shift');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('shift.Shifts');
+    }
 
     public static function form(Schema $schema): Schema
     {
