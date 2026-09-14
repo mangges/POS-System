@@ -44,7 +44,8 @@ class TablesTable
                 TextColumn::make('qr_token')
                     ->label('Token')
                     ->copyable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->icon('heroicon-o-clipboard')
+                    ->iconPosition('after'),
 
                 TextColumn::make('created_at')
                     ->dateTime()
