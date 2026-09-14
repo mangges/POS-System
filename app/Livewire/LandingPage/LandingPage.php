@@ -3,6 +3,7 @@
 namespace App\Livewire\LandingPage;
 
 use App\Models\Category;
+use App\Models\Shift;
 use App\Models\GuestSession;
 use App\Models\Product;
 use App\Models\Table;
@@ -15,7 +16,9 @@ use App\Models\Order;
 use App\Traits\CartCalculation;
 use App\Services\Order\OrderService;
 use App\Traits\PaymentMethodSelection;
+use App\Enum\Shifts\ShiftStatus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class LandingPage extends Component
 {
@@ -39,6 +42,7 @@ class LandingPage extends Component
     public array $splitOrderDetails = [];
     public ?int $activeSuccessTabIndex = null;
 
+    public ?Shift $activeShift = null;
     public ?int $viewingOrderId = null;
 
     protected OrderService $orderService;
@@ -54,6 +58,7 @@ class LandingPage extends Component
     public function mount(string $session_token)
     {
         $guestSession = GuestSession::where('token', $session_token)->firstOrFail();
+        $this->activeShift = Shift::with('user')->where('user_id', Auth::id())->where('status', ShiftStatus::Open)->first();
 
         if ($guestSession->isExpired()) {
             throw new \App\Exceptions\PosAbortException(410, 'Please scan the QR code again.', 'Session expired.', showCta: false);
@@ -167,6 +172,10 @@ class LandingPage extends Component
 
     public function checkout()
     {
+        if (! $this->activeShift) {
+            throw new \App\Exceptions\PosAbortException(403, 'Self ordering is currently unavailable because the cashier shift is not active.', 'Cashier shift not active.', showCta: true);
+        }
+
         if (empty($this->cart) || empty($this->customerName)) return;
 
         $guestSession = GuestSession::findOrFail($this->guestSessionId);
@@ -197,6 +206,10 @@ class LandingPage extends Component
 
     public function checkoutSplit(): void
     {
+        if (! $this->activeShift) {
+            throw new \App\Exceptions\PosAbortException(403, 'Self ordering is currently unavailable because the cashier shift is not active.', 'Cashier shift not active.', showCta: true);
+        }
+
         if (! $this->canCheckoutSplit()) return;
 
         $guestSession = GuestSession::findOrFail($this->guestSessionId);

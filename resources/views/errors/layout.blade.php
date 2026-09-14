@@ -180,7 +180,9 @@
         <p class="receipt__message">{{ $safeToShow ? $customMessage : trim($__env->yieldContent('description')) }}</p>
 
         @if ($showCta)
-            <a href="{{ url('/') }}" class="receipt__cta">@yield('cta', 'Kembali ke Beranda')</a>
+            <a href="{{ url()->previous() }}" class="receipt__cta">
+                @yield('cta', 'Kembali')
+            </a>
         @endif
 
         <hr class="receipt__perforation">
