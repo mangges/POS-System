@@ -27,3 +27,7 @@ Homestead.yaml
 Thumbs.db
 
 /.claude/
+
+/public/css/filament/
+/public/js/filament/
+/public/fonts/filament
