@@ -48,4 +48,9 @@ class Shift extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function scopeOpen($query)
+    {
+        return $query->where('status', ShiftStatus::Open);
+    }
 }

@@ -58,7 +58,7 @@ class LandingPage extends Component
     public function mount(string $session_token)
     {
         $guestSession = GuestSession::where('token', $session_token)->firstOrFail();
-        $this->activeShift = Shift::with('user')->where('user_id', Auth::id())->where('status', ShiftStatus::Open)->first();
+        $this->activeShift = Shift::open()->latest('opened_at')->first();
 
         if ($guestSession->isExpired()) {
             throw new \App\Exceptions\PosAbortException(410, 'Please scan the QR code again.', 'Session expired.', showCta: false);
